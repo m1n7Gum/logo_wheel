@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { indexAtPointer, planSpin, randomInt } from './spinEngine';
+import { indexAtPointer, planSpin, randomInt, spinKeyframes } from './spinEngine';
 
 describe('spinEngine', () => {
   it('lands exactly on the planned segment', () => {
@@ -26,5 +26,14 @@ describe('spinEngine', () => {
     const n = 60000;
     for (let i = 0; i < n; i++) counts[randomInt(6)]++;
     for (const c of counts) expect(Math.abs(c - n / 6)).toBeLessThan(n / 6 * 0.05);
+  });
+
+  it('samples keyframes from start to end, always moving forward', () => {
+    const frames = spinKeyframes(30, 2000, 50);
+    expect(frames[0]).toEqual({ offset: 0, rotation: 30 });
+    expect(frames[frames.length - 1]).toEqual({ offset: 1, rotation: 2000 });
+    for (let i = 1; i < frames.length; i++) {
+      expect(frames[i].rotation).toBeGreaterThanOrEqual(frames[i - 1].rotation);
+    }
   });
 });

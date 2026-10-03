@@ -4,12 +4,15 @@ export interface Settings {
   themeId: string;
   muted: boolean;
   lastWheelId: string | null;
+  /** Side bar collapsed behind the menu button, so children only see the wheel. */
+  toolbarHidden: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   themeId: 'classic',
   muted: false,
   lastWheelId: null,
+  toolbarHidden: false,
 };
 
 const STORAGE_KEY = 'gluecksrad.settings';

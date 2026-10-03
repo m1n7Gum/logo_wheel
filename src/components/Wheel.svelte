@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Entry } from '../lib/model/wheel';
   import type { Theme } from '../themes/types';
-  import { segmentAngle } from '../lib/spin/spinEngine';
+  import { segmentAngle, type RotationKeyframe } from '../lib/spin/spinEngine';
 
   let {
     entries,
@@ -9,6 +9,16 @@
     highlightIndex = null,
     theme,
   }: { entries: Entry[]; rotation: number; highlightIndex?: number | null; theme: Theme } = $props();
+
+  let wheelEl: HTMLDivElement;
+
+  /** Runs a spin on the compositor; resolves once the wheel has stopped. */
+  export function animateRotation(frames: RotationKeyframe[], durationMs: number): Animation {
+    return wheelEl.animate(
+      frames.map((f) => ({ offset: f.offset, transform: `rotate(${f.rotation}deg)` })),
+      { duration: durationMs, easing: 'linear', fill: 'forwards' },
+    );
+  }
 
   // Wheel geometry in a viewBox of -50..50; segment 0 starts at 12 o'clock, clockwise.
   const R = $derived(50 - theme.rimWidth);
@@ -76,7 +86,7 @@
 </script>
 
 <div class="shadow"></div>
-<div class="wheel" style:transform="rotate({rotation}deg)">
+<div class="wheel" bind:this={wheelEl} style:transform="rotate({rotation}deg)">
   <svg viewBox="-50 -50 100 100" role="img" aria-label="Glücksrad">
     <circle r="50" fill="var(--wheel-rim)" />
     {#each segments as s, i (s.entry.id)}

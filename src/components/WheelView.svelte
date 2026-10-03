@@ -3,8 +3,10 @@
   import SpinButton from './SpinButton.svelte';
   import ResultOverlay from './ResultOverlay.svelte';
   import Toolbar from './Toolbar.svelte';
+  import Icon from './Icon.svelte';
   import { app } from '../lib/state/app.svelte';
-  import { easeOutQuart, indexAtPointer, planSpin, segmentAngle } from '../lib/spin/spinEngine';
+  import { tick } from 'svelte';
+  import { easeOutQuart, planSpin, segmentAngle, spinKeyframes } from '../lib/spin/spinEngine';
   import { Ticker } from '../lib/audio/ticker';
   import type { Entry } from '../lib/model/wheel';
 
@@ -13,6 +15,7 @@
     ticker.muted = app.settings.muted;
   });
 
+  let wheel: Wheel | undefined = $state();
   let rotation = $state(0);
   let spinning = $state(false);
   let highlightIndex = $state<number | null>(null);
@@ -24,37 +27,40 @@
 
   function spin() {
     const count = entries.length;
-    if (spinning || count === 0) return;
+    if (spinning || count === 0 || !wheel) return;
     ticker.unlock();
     highlightIndex = null;
     spinning = true;
 
-    const startRotation = rotation;
-    const plan = planSpin(startRotation, count);
-    const seg = segmentAngle(count);
-    let lastBoundary = Math.floor(startRotation / seg);
-    const startTime = performance.now();
+    const start = rotation;
+    const plan = planSpin(start, count);
+    const animation = wheel.animateRotation(spinKeyframes(start, plan.endRotation), plan.durationMs);
 
-    const frame = (now: number) => {
+    // The animation itself runs on the compositor; this loop only drives the ratchet sound.
+    const seg = segmentAngle(count);
+    let lastBoundary = Math.floor(start / seg);
+    const startTime = performance.now();
+    const listen = (now: number) => {
       const t = Math.min(1, (now - startTime) / plan.durationMs);
-      rotation = startRotation + (plan.endRotation - startRotation) * easeOutQuart(t);
-      const boundary = Math.floor(rotation / seg);
+      const boundary = Math.floor((start + (plan.endRotation - start) * easeOutQuart(t)) / seg);
       if (boundary !== lastBoundary) {
         lastBoundary = boundary;
         ticker.tick(theme.tick);
       }
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        finish(indexAtPointer(rotation, count));
-      }
+      if (t < 1 && spinning) requestAnimationFrame(listen);
     };
-    requestAnimationFrame(frame);
+    requestAnimationFrame(listen);
+
+    animation.finished.then(async () => {
+      // Hand the final angle back to the static style before dropping the animation.
+      rotation = plan.endRotation % 360;
+      await tick();
+      animation.cancel();
+      finish(plan.targetIndex);
+    });
   }
 
   function finish(index: number) {
-    // Keep rotation small so numbers never grow unbounded.
-    rotation %= 360;
     highlightIndex = index;
     const picked = entries[index];
     setTimeout(() => {
@@ -71,7 +77,7 @@
   }
 </script>
 
-<div class="screen">
+<div class="screen" class:full={app.settings.toolbarHidden}>
   <main class="area">
     {#if !app.activeWheel || app.activeWheel.entries.length === 0}
       <div class="empty">
@@ -95,7 +101,7 @@
         {/if}
         <div class="wheel-slot" style:top="{(theme.pointerSpace / stageHeight) * 100}%">
           {#if entries.length > 0}
-            <Wheel {entries} {rotation} {highlightIndex} {theme} />
+            <Wheel bind:this={wheel} {entries} {rotation} {highlightIndex} {theme} />
           {:else}
             <div class="done">
               <p>Alle geschafft! 🎉</p>
@@ -115,7 +121,13 @@
     {/if}
   </main>
 
-  <Toolbar disabled={spinning} />
+  {#if app.settings.toolbarHidden}
+    <button class="menu" onclick={() => app.updateSettings({ toolbarHidden: false })} aria-label="Menü einblenden">
+      <Icon name="menu" />
+    </button>
+  {:else}
+    <Toolbar disabled={spinning} />
+  {/if}
 </div>
 
 {#if result}
@@ -148,6 +160,26 @@
     .screen > :global(nav) {
       order: -1;
     }
+  }
+  /* Side bar collapsed: the wheel area gets the whole screen. */
+  .screen.full {
+    grid-template: 1fr / 1fr;
+  }
+  .menu {
+    position: absolute;
+    z-index: 4;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    color: var(--text-muted);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
   }
   .area {
     position: relative;

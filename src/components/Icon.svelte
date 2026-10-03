@@ -1,6 +1,7 @@
 <script lang="ts" module>
   // Stroke icons in a 24×24 grid (Feather style).
   const ICONS = {
+    menu: 'M3 6h18M3 12h18M3 18h18',
     list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
     edit: 'M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z',
     reset: 'M1 4v6h6M3.51 15a9 9 0 1 0 2.13-9.36L1 10',

@@ -61,3 +61,19 @@ export function planSpin(currentRotation: number, count: number, opts: SpinOptio
 export function easeOutQuart(t: number): number {
   return 1 - Math.pow(1 - t, 4);
 }
+
+export interface RotationKeyframe {
+  offset: number;
+  rotation: number;
+}
+
+/**
+ * Samples the spin curve into keyframes, so the browser can run the whole animation on
+ * the compositor (Web Animations API) instead of JavaScript updating every frame.
+ */
+export function spinKeyframes(start: number, end: number, steps = 90): RotationKeyframe[] {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const offset = i / steps;
+    return { offset, rotation: start + (end - start) * easeOutQuart(offset) };
+  });
+}

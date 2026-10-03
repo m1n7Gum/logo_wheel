@@ -14,6 +14,11 @@
 </script>
 
 <nav class="toolbar">
+  <button class="tile hide" onclick={() => app.updateSettings({ toolbarHidden: true })}>
+    <Icon name="close" />
+    <span>Ausblenden</span>
+  </button>
+
   <div class="group">
     <button class="tile wheel-name" onclick={() => app.show({ name: 'list' })} {disabled}>
       <Icon name="list" />
@@ -85,6 +90,14 @@
   }
   .spacer {
     flex: 1;
+  }
+  .tile.hide {
+    min-height: 48px;
+    flex-direction: row;
+    gap: 6px;
+    color: var(--text-muted);
+    box-shadow: none;
+    background: transparent;
   }
   .tile {
     display: flex;
@@ -192,6 +205,11 @@
       width: auto;
       min-width: 92px;
       max-width: 140px;
+    }
+    .tile.hide {
+      order: 10;
+      min-width: 0;
+      flex-direction: column;
     }
   }
 </style>
