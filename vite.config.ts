@@ -20,12 +20,12 @@ export default defineConfig({
         lang: 'de',
         display: 'standalone',
         orientation: 'any',
-        background_color: '#f4f1ea',
-        theme_color: '#f4f1ea',
+        background_color: '#1d2045',
+        theme_color: '#eef0f8',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
