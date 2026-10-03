@@ -20,9 +20,17 @@ export interface Theme {
    * The pointer is drawn into a stage of size 100 × (100 + pointerSpace).
    */
   pointerSpace: number;
+  /** Width of the outer rim in wheel units (wheel radius = 50). */
+  rimWidth: number;
+  /** Small pegs on the rim at every segment boundary (game-show look). */
+  pegs?: boolean;
   /** SVG component (namespace="svg") drawn on top of the wheel in stage coordinates. */
   Pointer: Component;
-  /** Optional HTML component for background decoration (rendered behind the wheel). */
+  /**
+   * Optional HTML scenery around the wheel, rendered behind it. It is laid out inside the
+   * stage box (width = wheel diameter), so percentages scale with the wheel; it may overflow
+   * the box. `--wheel-top` holds the wheel's top offset within the stage.
+   */
   Decorations?: Component;
   tick?: TickSound;
 }
@@ -39,6 +47,9 @@ export interface ThemeTokens {
   fontFamily: string;
   radius: string;
   wheelRim: string;
+  /** CSS `box-shadow` around the wheel; use 'none' for flat. */
+  wheelShadow: string;
+  pegColor: string;
   segmentStroke: string;
   highlight: string;
   centerBg: string;

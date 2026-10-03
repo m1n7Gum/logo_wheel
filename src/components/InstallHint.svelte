@@ -1,14 +1,21 @@
 <script lang="ts">
-  import { isInstalledApp } from '../lib/storage/settings';
+  import { isInstalledApp, isSamsungInternet } from '../lib/storage/settings';
 
   const installed = isInstalledApp();
+  const samsung = isSamsungInternet();
 </script>
 
 {#if !installed}
   <div class="hint" role="note">
-    <strong>Bitte als App installieren:</strong> Sonst kann der Browser die gespeicherten Räder nach
-    einiger Zeit löschen. iPad: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → Menü ⋮ →
-    „App installieren“.
+    {#if samsung}
+      <strong>Bitte in Chrome öffnen:</strong> Samsung Internet installiert Web-Apps in einem veralteten
+      Format, das neuere Android-Versionen blockieren. Diese Seite in <strong>Chrome</strong> öffnen →
+      Menü ⋮ → „App installieren“. Sonst kann der Browser die gespeicherten Räder nach einiger Zeit löschen.
+    {:else}
+      <strong>Bitte als App installieren:</strong> Sonst kann der Browser die gespeicherten Räder nach
+      einiger Zeit löschen. iPad: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → Menü ⋮ →
+      „App installieren“.
+    {/if}
   </div>
 {/if}
 

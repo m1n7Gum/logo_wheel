@@ -44,3 +44,11 @@ export function isInstalledApp(): boolean {
     (navigator as Navigator & { standalone?: boolean }).standalone === true
   );
 }
+
+/**
+ * Samsung Internet installs web apps as packages built for old Android versions,
+ * which Android 14+ blocks ("unsichere App blockiert"). Chrome does not have this problem.
+ */
+export function isSamsungInternet(): boolean {
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}

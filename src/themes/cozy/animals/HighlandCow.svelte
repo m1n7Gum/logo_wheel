@@ -1,35 +1,50 @@
-<svg viewBox="0 0 100 100" aria-hidden="true">
-  <g stroke-linecap="round" stroke-linejoin="round">
+<svg viewBox="0 0 120 120" aria-hidden="true">
+  <g stroke="#5b4033" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
     <!-- horns -->
-    <path d="M 30 38 Q 14 38 8 20" fill="none" stroke="#b9a785" stroke-width="7" />
-    <path d="M 70 38 Q 86 38 92 20" fill="none" stroke="#b9a785" stroke-width="7" />
-    <path d="M 30 38 Q 14 38 8 20" fill="none" stroke="#f3e8cf" stroke-width="5" />
-    <path d="M 70 38 Q 86 38 92 20" fill="none" stroke="#f3e8cf" stroke-width="5" />
+    <path d="M 36 37 C 24 37 13 30 10 17 C 17 23 27 26 39 28 Z" fill="#f7eedb" />
+    <path d="M 84 37 C 96 37 107 30 110 17 C 103 23 93 26 81 28 Z" fill="#f7eedb" />
     <!-- ears -->
-    <ellipse cx="22" cy="50" rx="10" ry="5" fill="#b5652f" transform="rotate(20 22 50)" />
-    <ellipse cx="78" cy="50" rx="10" ry="5" fill="#b5652f" transform="rotate(-20 78 50)" />
+    <ellipse cx="24" cy="53" rx="12" ry="6.5" transform="rotate(18 24 53)" fill="#c96a32" />
+    <ellipse cx="96" cy="53" rx="12" ry="6.5" transform="rotate(-18 96 53)" fill="#c96a32" />
     <!-- head -->
-    <ellipse cx="50" cy="60" rx="25" ry="29" fill="#c8743a" />
-    <!-- eyes peeking under the fringe -->
-    <circle cx="40" cy="57" r="2.6" fill="#2b1d14" />
-    <circle cx="60" cy="57" r="2.6" fill="#2b1d14" />
-    <circle cx="40.8" cy="56.2" r="0.8" fill="#fff" />
-    <circle cx="60.8" cy="56.2" r="0.8" fill="#fff" />
-    <!-- shaggy fringe -->
-    <path
-      d="M 25 54 Q 26 32 38 33 Q 44 24 52 31 Q 60 24 66 33 Q 77 33 75 54
-         Q 71 47 66 53 Q 61 44 55 52 Q 50 44 45 52 Q 39 44 34 53 Q 29 47 25 54 Z"
-      fill="#d98a4c"
-      stroke="#a8582a"
-      stroke-width="1.2"
-    />
-    <path d="M 40 36 Q 44 42 42 47 M 52 34 Q 55 40 52 46 M 62 37 Q 64 42 61 47" fill="none" stroke="#a8582a" stroke-width="1" />
-    <!-- snout -->
-    <ellipse cx="50" cy="76" rx="17" ry="11.5" fill="#f2c9a0" />
-    <ellipse cx="43.5" cy="76" rx="2.2" ry="3" fill="#7a4a2a" />
-    <ellipse cx="56.5" cy="76" rx="2.2" ry="3" fill="#7a4a2a" />
-    <path d="M 45 83 Q 50 86 55 83" fill="none" stroke="#7a4a2a" stroke-width="1.2" />
-    <circle cx="31" cy="66" r="3.5" fill="#f29a8a" opacity="0.55" />
-    <circle cx="69" cy="66" r="3.5" fill="#f29a8a" opacity="0.55" />
+    <path d="M 60 26 C 84 26 91 44 91 62 C 91 86 80 104 60 104 C 40 104 29 86 29 62 C 29 44 36 26 60 26 Z" fill="#d97e3e" />
   </g>
+  <ellipse cx="23" cy="53" rx="7" ry="3" transform="rotate(18 23 53)" fill="#f0a988" />
+  <ellipse cx="97" cy="53" rx="7" ry="3" transform="rotate(-18 97 53)" fill="#f0a988" />
+  <!-- shaggy fur -->
+  <path d="M 34 70 q 4 4 2 9 M 86 70 q -4 4 -2 9 M 39 84 q 3 3 2 7 M 81 84 q -3 3 -2 7" fill="none" stroke="#b5622b" stroke-width="2" stroke-linecap="round" />
+  <!-- eyes peeking out under the fringe -->
+  <ellipse cx="47" cy="66" rx="3.6" ry="4.3" fill="#2b1d14" />
+  <ellipse cx="73" cy="66" rx="3.6" ry="4.3" fill="#2b1d14" />
+  <circle cx="48.3" cy="64.6" r="1.4" fill="#fff" />
+  <circle cx="74.3" cy="64.6" r="1.4" fill="#fff" />
+  <!-- fringe, parted in the middle -->
+  <path
+    d="M 26 62 C 21 44 31 25 48 25 C 52 21 68 21 72 25 C 89 25 99 44 94 62 C 91 56 87 57 85 62 C 82 55 77 55 75 61 C 72 54 66 54 64 60 C 61 54 55 54 53 60 C 51 54 45 54 44 61 C 41 55 36 55 34 62 C 32 57 29 58 26 62 Z"
+    fill="#eb9a55"
+    stroke="#5b4033"
+    stroke-width="2.6"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M 60 26 C 56 33 51 40 46 50 M 60 26 C 64 33 69 40 74 50 M 52 28 C 46 34 39 42 34 53 M 68 28 C 74 34 81 42 86 53"
+    fill="none"
+    stroke="#c9733a"
+    stroke-width="1.8"
+    stroke-linecap="round"
+  />
+  <!-- flower -->
+  <g transform="translate(83 34)" stroke="#5b4033" stroke-width="1.4">
+    <circle cx="0" cy="-4" r="3.2" fill="#fff" />
+    <circle cx="3.8" cy="-1.2" r="3.2" fill="#fff" />
+    <circle cx="2.4" cy="3.3" r="3.2" fill="#fff" />
+    <circle cx="-2.4" cy="3.3" r="3.2" fill="#fff" />
+    <circle cx="-3.8" cy="-1.2" r="3.2" fill="#fff" />
+    <circle r="2.4" fill="#ffcf4a" />
+  </g>
+  <!-- snout -->
+  <ellipse cx="60" cy="86" rx="21" ry="13.5" fill="#f6cfa8" stroke="#5b4033" stroke-width="2.6" />
+  <ellipse cx="52" cy="85" rx="2.6" ry="3.4" fill="#7a4430" />
+  <ellipse cx="68" cy="85" rx="2.6" ry="3.4" fill="#7a4430" />
+  <path d="M 55 94 Q 60 97.5 65 94" fill="none" stroke="#5b4033" stroke-width="2.2" stroke-linecap="round" />
 </svg>

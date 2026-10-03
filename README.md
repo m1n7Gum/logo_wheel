@@ -9,7 +9,7 @@ Die App ist eine **PWA** (Web-App zum Installieren): Sie läuft auf iPad und And
 1. Die Seite einmal im Browser öffnen (Adresse siehe GitHub Pages).
 2. **Als App installieren**. Das ist wichtig, damit die gespeicherten Räder nicht gelöscht werden.
    - **iPad:** In Safari auf *Teilen* tippen und dann *Zum Home-Bildschirm*.
-   - **Android (Samsung):** In Chrome das Menü ⋮ öffnen und *App installieren* bzw. *Zum Startbildschirm hinzufügen* wählen.
+   - **Android (Samsung):** In **Chrome** das Menü ⋮ öffnen und *App installieren* wählen. Bitte nicht *Samsung Internet* verwenden: Dessen installierte Web-Apps blockiert Android 14+ mit der Meldung „Unsichere App blockiert … ältere Android-Version“.
 3. Die App danach immer über das Symbol auf dem Home-Bildschirm starten.
 
 Gut zu wissen:

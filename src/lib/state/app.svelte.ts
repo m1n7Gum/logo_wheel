@@ -1,4 +1,4 @@
-import { createWheel, duplicateWheel, exampleWheel, type Wheel } from '../model/wheel';
+import { duplicateWheel, exampleWheel, type Wheel } from '../model/wheel';
 import {
   createLocalStorageRepository,
   exportBackup,
@@ -10,7 +10,13 @@ import { loadSettings, saveSettings, type Settings } from '../storage/settings';
 import { remainingEntries, removeFromRun, resetRun, startRun, type RunSession } from '../spin/runSession';
 import { getTheme } from '../../themes/registry';
 
-export type View = { name: 'wheel' } | { name: 'list' } | { name: 'edit'; wheelId: string };
+/** `wheelId: null` opens the editor for a new wheel. */
+export type View = { name: 'wheel' } | { name: 'list' } | { name: 'edit'; wheelId: string | null };
+
+export interface Toast {
+  message: string;
+  action?: { label: string; run: () => void };
+}
 
 /**
  * Central app state. Every mutation goes through a method here and is saved immediately,
@@ -21,6 +27,8 @@ export class AppState {
   settings = $state<Settings>(loadSettings());
   view = $state<View>({ name: 'wheel' });
   settingsOpen = $state(false);
+  toast = $state<Toast | null>(null);
+  private toastTimer: ReturnType<typeof setTimeout> | undefined;
   private run = $state<RunSession | null>(null);
 
   activeWheel = $derived(
@@ -54,19 +62,26 @@ export class AppState {
 
   // ---- wheels ----
 
-  addWheel(): Wheel {
-    const wheel = createWheel('Neues Rad');
-    this.wheels.push(wheel);
+  /** Inserts a new wheel or replaces the saved version of an existing one. */
+  saveWheel(wheel: Wheel): void {
+    const saved = { ...wheel, updatedAt: Date.now() };
+    const index = this.wheels.findIndex((w) => w.id === wheel.id);
+    if (index === -1) this.wheels.push(saved);
+    else this.wheels[index] = saved;
     this.persistWheels();
-    this.updateSettings({ lastWheelId: wheel.id });
-    return wheel;
   }
 
-  duplicate(id: string): void {
+  duplicate(id: string): Wheel | null {
     const original = this.wheels.find((w) => w.id === id);
-    if (!original) return;
-    this.wheels.push(duplicateWheel($state.snapshot(original)));
+    if (!original) return null;
+    const copy = duplicateWheel($state.snapshot(original));
+    this.wheels.push(copy);
     this.persistWheels();
+    this.showToast(`Kopie „${copy.name}“ angelegt`, {
+      label: 'Bearbeiten',
+      run: () => this.show({ name: 'edit', wheelId: copy.id }),
+    });
+    return copy;
   }
 
   updateWheel(id: string, changes: Partial<Omit<Wheel, 'id'>>): void {
@@ -92,6 +107,19 @@ export class AppState {
 
   resetRun(): void {
     if (this.run) this.run = resetRun(this.run);
+  }
+
+  // ---- feedback ----
+
+  showToast(message: string, action?: Toast['action']): void {
+    clearTimeout(this.toastTimer);
+    this.toast = { message, action };
+    this.toastTimer = setTimeout(() => (this.toast = null), 4000);
+  }
+
+  dismissToast(): void {
+    clearTimeout(this.toastTimer);
+    this.toast = null;
   }
 
   // ---- settings ----

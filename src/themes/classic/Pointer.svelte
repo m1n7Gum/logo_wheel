@@ -1,12 +1,13 @@
 <svelte:options namespace="svg" />
 
-<!-- Simple downward triangle at 12 o'clock. Stage: 100 × 108, wheel top at y = 8. -->
-<g filter="drop-shadow(0 0.6px 0.8px rgba(0,0,0,0.35))">
+<!-- Map-pin style pointer at 12 o'clock. Stage: 100 × 109, wheel top at y = 9. -->
+<g filter="drop-shadow(0 0.8px 1px rgba(20,22,50,0.45))">
   <path
-    d="M 43.5 1.5 L 56.5 1.5 Q 58 1.5 57.2 2.8 L 51 15 Q 50 16.8 49 15 L 42.8 2.8 Q 42 1.5 43.5 1.5 Z"
-    fill="var(--accent)"
-    stroke="var(--surface)"
-    stroke-width="0.8"
+    d="M 50 16.5 L 45.2 8.6 A 5.6 5.6 0 1 1 54.8 8.6 Z"
+    fill="#1d2045"
+    stroke="#ffffff"
+    stroke-width="1"
     stroke-linejoin="round"
   />
+  <circle cx="50" cy="5.6" r="1.9" fill="#ffd60a" />
 </g>

@@ -73,10 +73,6 @@
 
 <div class="screen">
   <main class="area">
-    {#if theme.Decorations}
-      <div class="decorations"><theme.Decorations /></div>
-    {/if}
-
     {#if !app.activeWheel || app.activeWheel.entries.length === 0}
       <div class="empty">
         <p>{app.activeWheel ? 'Dieses Rad hat noch keine Felder.' : 'Noch kein Rad vorhanden.'}</p>
@@ -85,13 +81,18 @@
           onclick={() =>
             app.activeWheel
               ? app.show({ name: 'edit', wheelId: app.activeWheel.id })
-              : app.show({ name: 'edit', wheelId: app.addWheel().id })}
+              : app.show({ name: 'edit', wheelId: null })}
         >
           {app.activeWheel ? 'Felder hinzufügen' : 'Neues Rad anlegen'}
         </button>
       </div>
     {:else}
       <div class="stage" style:--stage-ratio={100 / stageHeight}>
+        {#if theme.Decorations}
+          <div class="scenery" style:--wheel-top="{(theme.pointerSpace / stageHeight) * 100}%">
+            <theme.Decorations />
+          </div>
+        {/if}
         <div class="wheel-slot" style:top="{(theme.pointerSpace / stageHeight) * 100}%">
           {#if entries.length > 0}
             <Wheel {entries} {rotation} {highlightIndex} {theme} />
@@ -129,6 +130,11 @@
   .screen {
     height: 100dvh;
     display: grid;
+    overflow: hidden;
+  }
+  .screen > :global(nav) {
+    position: relative;
+    z-index: 3;
   }
   @media (orientation: landscape) {
     .screen {
@@ -150,13 +156,14 @@
     place-items: center;
     min-width: 0;
     min-height: 0;
-    overflow: hidden;
     padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-left))
       max(12px, env(safe-area-inset-bottom)) 12px;
   }
-  .decorations {
+  /* Theme scenery lives in stage coordinates, behind the wheel. */
+  .scenery {
     position: absolute;
     inset: 0;
+    z-index: 0;
     pointer-events: none;
   }
   .stage {
@@ -164,11 +171,13 @@
     /* As large as possible while keeping the stage's aspect ratio. */
     width: min(100cqw - 24px, (100cqh - 24px) * var(--stage-ratio));
     aspect-ratio: var(--stage-ratio);
+    z-index: 1;
     user-select: none;
     -webkit-user-select: none;
   }
   .wheel-slot {
     position: absolute;
+    z-index: 1;
     left: 0;
     width: 100%;
     aspect-ratio: 1;
@@ -184,6 +193,7 @@
   }
   .pointer {
     position: absolute;
+    z-index: 2;
     inset: 0;
     width: 100%;
     height: 100%;

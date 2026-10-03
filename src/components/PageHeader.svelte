@@ -7,11 +7,13 @@
     backLabel,
     onback,
     actions,
-  }: { title: string; backLabel: string; onback: () => void; actions?: Snippet } = $props();
+  }: { title: string; backLabel?: string; onback?: () => void; actions?: Snippet } = $props();
 </script>
 
 <header>
-  <button class="ghost" onclick={onback}><Icon name="back" />{backLabel}</button>
+  <div>
+    {#if onback}<button class="ghost" onclick={onback}><Icon name="back" />{backLabel}</button>{/if}
+  </div>
   <h1>{title}</h1>
   <div class="actions">{@render actions?.()}</div>
 </header>

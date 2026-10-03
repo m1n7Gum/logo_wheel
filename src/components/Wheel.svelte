@@ -11,7 +11,8 @@
   }: { entries: Entry[]; rotation: number; highlightIndex?: number | null; theme: Theme } = $props();
 
   // Wheel geometry in a viewBox of -50..50; segment 0 starts at 12 o'clock, clockwise.
-  const R = 47.5;
+  const R = $derived(50 - theme.rimWidth);
+  const pegRadius = $derived(50 - theme.rimWidth / 2);
 
   const segments = $derived.by(() => {
     const n = entries.length;
@@ -46,10 +47,10 @@
 
   // Label layouts. "Across" text sits upright when its segment is at the pointer;
   // "along" text runs along the radius and fits many segments / long labels better.
-  const MAX_FONT = R * 0.22;
-  const ACROSS_R = R * 0.68;
-  const ALONG_INNER = R * 0.3;
-  const ALONG_OUTER = R * 0.93;
+  const MAX_FONT = $derived(R * 0.22);
+  const ACROSS_R = $derived(R * 0.68);
+  const ALONG_INNER = $derived(R * 0.3);
+  const ALONG_OUTER = $derived(R * 0.93);
 
   const glyphs = (label: string) => Math.max(1, [...label].length);
   const halfAngle = (seg: number) => (Math.min(seg, 120) * Math.PI) / 360;
@@ -74,6 +75,7 @@
   }
 </script>
 
+<div class="shadow"></div>
 <div class="wheel" style:transform="rotate({rotation}deg)">
   <svg viewBox="-50 -50 100 100" role="img" aria-label="Glücksrad">
     <circle r="50" fill="var(--wheel-rim)" />
@@ -97,6 +99,17 @@
         </g>
       </g>
     {/each}
+    {#if theme.pegs && segments.length > 1}
+      {#each segments as s, i (s.entry.id)}
+        {@const a = ((i * 360) / segments.length) * (Math.PI / 180)}
+        <circle
+          cx={pegRadius * Math.sin(a)}
+          cy={-pegRadius * Math.cos(a)}
+          r={Math.min(1.1, theme.rimWidth * 0.32)}
+          fill="var(--peg-color)"
+        />
+      {/each}
+    {/if}
     {#if highlightIndex !== null && segments[highlightIndex]}
       {@const h = segments[highlightIndex]}
       {#if h.path}
@@ -110,9 +123,18 @@
 
 <style>
   .wheel {
+    position: relative;
     width: 100%;
     height: 100%;
     will-change: transform;
+  }
+  /* Static shadow behind the rotating wheel: cheap, and the light doesn't spin along. */
+  .shadow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: var(--wheel-shadow);
+    pointer-events: none;
   }
   svg {
     width: 100%;

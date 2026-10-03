@@ -3,177 +3,157 @@
   import PageHeader from './PageHeader.svelte';
   import InstallHint from './InstallHint.svelte';
   import { app } from '../lib/state/app.svelte';
-  import { createEntry, newId, type Entry } from '../lib/model/wheel';
+  import { createEntry, createWheel, newId, type Wheel } from '../lib/model/wheel';
 
-  let { wheelId }: { wheelId: string } = $props();
+  /** `null` creates a new wheel. */
+  let { wheelId }: { wheelId: string | null } = $props();
 
-  const wheel = $derived(app.wheels.find((w) => w.id === wheelId));
+  // The editor works on a draft; nothing is stored until "Speichern & schließen".
+  const saved = app.wheels.find((w) => w.id === wheelId);
+  const isNew = !saved;
+  let draft = $state<Wheel>(saved ? structuredClone($state.snapshot(saved)) : createWheel(''));
+  const initial = JSON.stringify($state.snapshot(draft));
+  const dirty = $derived(JSON.stringify($state.snapshot(draft)) !== initial);
 
   let newLabel = $state('');
   let bulkMode = $state(false);
   let bulkText = $state('');
+  let confirmDiscard = $state(false);
   let confirmDelete = $state(false);
   let newInput: HTMLInputElement | undefined = $state();
 
-  function setEntries(entries: Entry[]) {
-    app.updateWheel(wheelId, { entries });
-  }
-
   function addEntry() {
     const label = newLabel.trim();
-    if (!wheel || !label) return;
-    setEntries([...wheel.entries, createEntry(label)]);
+    if (!label) return;
+    draft.entries.push(createEntry(label));
     newLabel = '';
     newInput?.focus();
   }
 
-  function renameEntry(index: number, label: string) {
-    if (!wheel) return;
-    setEntries(wheel.entries.map((e, i) => (i === index ? { ...e, label } : e)));
-  }
-
-  function removeEntry(index: number) {
-    if (!wheel) return;
-    setEntries(wheel.entries.filter((_, i) => i !== index));
-  }
-
   function toggleBulk() {
-    if (!wheel) return;
-    if (!bulkMode) bulkText = wheel.entries.map((e) => e.label).join('\n');
+    if (!bulkMode) bulkText = draft.entries.map((e) => e.label).join('\n');
     bulkMode = !bulkMode;
   }
 
   /** One entry per line; existing ids are kept by position. */
-  function applyBulk(text: string) {
-    if (!wheel) return;
-    const labels = text.split('\n').map((l) => l.trim()).filter(Boolean);
-    setEntries(labels.map((label, i) => ({ id: wheel.entries[i]?.id ?? newId(), label })));
+  function applyBulk() {
+    const labels = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
+    draft.entries = labels.map((label, i) => ({ id: draft.entries[i]?.id ?? newId(), label }));
   }
 
-  function done() {
-    // Drop entries that were emptied while editing.
-    if (wheel) setEntries(wheel.entries.filter((e) => e.label.trim() !== ''));
-    app.selectWheel(wheelId);
+  function save() {
+    const wheel = $state.snapshot(draft);
+    wheel.name = wheel.name.trim() || 'Unbenanntes Rad';
+    wheel.entries = wheel.entries
+      .map((e) => ({ ...e, label: e.label.trim() }))
+      .filter((e) => e.label !== '');
+    app.saveWheel(wheel);
+    app.selectWheel(wheel.id);
+  }
+
+  function cancel() {
+    if (dirty && !confirmDiscard) {
+      confirmDiscard = true;
+      return;
+    }
+    app.show(isNew ? { name: 'list' } : { name: 'wheel' });
   }
 
   function remove() {
-    app.deleteWheel(wheelId);
+    app.deleteWheel(draft.id);
     app.show({ name: 'list' });
   }
 </script>
 
-{#if wheel}
-  <div class="page">
-    <PageHeader title="Rad bearbeiten" backLabel="Fertig" onback={done} />
+<div class="page">
+  <PageHeader title={isNew ? 'Neues Rad' : 'Rad bearbeiten'} backLabel="Abbrechen" onback={cancel}>
+    {#snippet actions()}
+      <button class="primary" onclick={save}><Icon name="check" />Speichern & schließen</button>
+    {/snippet}
+  </PageHeader>
 
-    <div class="content">
-      <InstallHint />
-      <p class="saved"><Icon name="check" size={18} /> Änderungen werden automatisch gespeichert.</p>
+  <div class="content">
+    {#if confirmDiscard}
+      <div class="discard" role="alert">
+        <span>Ungespeicherte Änderungen verwerfen?</span>
+        <button class="ghost" onclick={() => (confirmDiscard = false)}>Weiter bearbeiten</button>
+        <button class="destructive" onclick={cancel}>Verwerfen</button>
+      </div>
+    {/if}
 
-      <label class="field">
-        <span>Name</span>
-        <input
-          type="text"
-          value={wheel.name}
-          oninput={(e) => app.updateWheel(wheelId, { name: e.currentTarget.value })}
-          placeholder="z.B. Laute – Frau Müller"
-        />
-      </label>
+    <InstallHint />
 
-      <label class="switch">
-        <input
-          type="checkbox"
-          checked={wheel.removeAfterPick}
-          onchange={(e) => app.updateWheel(wheelId, { removeAfterPick: e.currentTarget.checked })}
-        />
-        <span>
-          <strong>Gezogene Felder verschwinden</strong>
-          <small>Nur für die aktuelle Runde – das gespeicherte Rad bleibt vollständig.</small>
-        </span>
-      </label>
+    <label class="field">
+      <span>Name</span>
+      <input type="text" bind:value={draft.name} placeholder="z.B. Laute – Frau Müller" />
+    </label>
 
-      <section>
-        <div class="section-head">
-          <h2>Felder ({wheel.entries.length})</h2>
-          <button class="ghost" onclick={toggleBulk}>{bulkMode ? 'Einzeln bearbeiten' : 'Als Liste bearbeiten'}</button>
-        </div>
+    <section>
+      <div class="section-head">
+        <h2>Felder ({draft.entries.length})</h2>
+        <button class="ghost" onclick={toggleBulk}>{bulkMode ? 'Einzeln bearbeiten' : 'Als Liste bearbeiten'}</button>
+      </div>
 
-        {#if bulkMode}
-          <textarea
-            rows="12"
-            bind:value={bulkText}
-            oninput={() => applyBulk(bulkText)}
-            placeholder={'Ein Feld pro Zeile, z.B.\nSch\nK\nKuh 🐄'}
-          ></textarea>
-        {:else}
-          <ol>
-            {#each wheel.entries as entry, i (entry.id)}
-              <li>
-                <input type="text" value={entry.label} oninput={(e) => renameEntry(i, e.currentTarget.value)} />
-                <button class="ghost icon" onclick={() => removeEntry(i)} aria-label="Feld löschen">
-                  <Icon name="trash" />
-                </button>
-              </li>
-            {/each}
-          </ol>
-          <form class="add" onsubmit={(e) => (e.preventDefault(), addEntry())}>
-            <input type="text" bind:value={newLabel} bind:this={newInput} placeholder="Neues Feld, z.B. Sch" enterkeyhint="done" />
-            <button class="primary" type="submit" disabled={!newLabel.trim()}><Icon name="plus" />Hinzufügen</button>
-          </form>
-        {/if}
-      </section>
+      {#if bulkMode}
+        <textarea
+          rows="12"
+          bind:value={bulkText}
+          oninput={applyBulk}
+          placeholder={'Ein Feld pro Zeile, z.B.\nSch\nK\nKuh 🐄'}
+        ></textarea>
+      {:else}
+        <ol>
+          {#each draft.entries as entry, i (entry.id)}
+            <li>
+              <input type="text" bind:value={entry.label} />
+              <button class="ghost icon" onclick={() => draft.entries.splice(i, 1)} aria-label="Feld löschen">
+                <Icon name="trash" />
+              </button>
+            </li>
+          {/each}
+        </ol>
+        <form class="add" onsubmit={(e) => (e.preventDefault(), addEntry())}>
+          <input type="text" bind:value={newLabel} bind:this={newInput} placeholder="Neues Feld, z.B. Sch" enterkeyhint="done" />
+          <button class="primary" type="submit" disabled={!newLabel.trim()}><Icon name="plus" />Hinzufügen</button>
+        </form>
+      {/if}
+    </section>
 
+    {#if !isNew}
       <section class="danger">
         {#if confirmDelete}
-          <span>Rad „{wheel.name}“ wirklich löschen?</span>
+          <span>Rad „{saved?.name}“ wirklich löschen?</span>
           <button class="ghost" onclick={() => (confirmDelete = false)}>Abbrechen</button>
           <button class="destructive" onclick={remove}><Icon name="trash" />Endgültig löschen</button>
         {:else}
-          <button class="ghost" onclick={() => app.duplicate(wheelId)}><Icon name="copy" />Duplizieren</button>
+          <button class="ghost" onclick={() => app.duplicate(draft.id)}><Icon name="copy" />Duplizieren</button>
           <button class="ghost destructive-text" onclick={() => (confirmDelete = true)}><Icon name="trash" />Rad löschen</button>
         {/if}
       </section>
-    </div>
+    {/if}
   </div>
-{/if}
+</div>
 
 <style>
-  .saved {
+  .discard {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 14px;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 2px solid #c0392b;
+    font-weight: 700;
+  }
+  .discard span {
+    flex: 1;
+    min-width: 200px;
   }
   .field {
     display: grid;
     gap: 6px;
     font-weight: 700;
-  }
-  .switch {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-  .switch input {
-    width: 28px;
-    height: 28px;
-    accent-color: var(--accent);
-    flex: none;
-  }
-  .switch span {
-    display: grid;
-    gap: 2px;
-  }
-  .switch small {
-    color: var(--text-muted);
-    font-size: 14px;
   }
   .section-head {
     display: flex;

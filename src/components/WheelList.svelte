@@ -10,7 +10,7 @@
 <div class="page">
   <PageHeader title="Räder" backLabel="Zum Rad" onback={() => app.show({ name: 'wheel' })}>
     {#snippet actions()}
-      <button class="primary" onclick={() => app.show({ name: 'edit', wheelId: app.addWheel().id })}>
+      <button class="primary" onclick={() => app.show({ name: 'edit', wheelId: null })}>
         <Icon name="plus" />Neues Rad
       </button>
     {/snippet}
