@@ -1,0 +1,113 @@
+/* Base styles. All colors and fonts come from theme tokens (see src/themes). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input[type='text'],
+textarea {
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: calc(var(--radius) * 0.7);
+  background: var(--surface);
+  font-size: 18px;
+}
+
+input[type='text']:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.primary,
+.ghost,
+.destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: calc(var(--radius) * 0.7);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+}
+
+.ghost {
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.ghost.icon {
+  min-width: 48px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.destructive {
+  border: 0;
+  background: #c0392b;
+  color: #fff;
+}
+
+.destructive-text {
+  color: #c0392b;
+}
+
+.page {
+  min-height: 100dvh;
+}
+
+.page .content {
+  display: grid;
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+}
