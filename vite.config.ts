@@ -29,8 +29,18 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Includes the bundled pictures (public/pictograms, ~32 MB): all offline after install.
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        // ~2,000 pictures would make the install so slow that Firefox and Samsung Internet abort
+        // it. The app stores them itself in the background (src/lib/pictures/offlineCache.ts).
+        globIgnores: ['**/pictograms/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/pictograms/'),
+            handler: 'CacheFirst',
+            // Must match PICTURE_CACHE in src/lib/pictures/offlineCache.ts.
+            options: { cacheName: 'pictograms', cacheableResponse: { statuses: [200] } },
+          },
+        ],
       },
     }),
   ],

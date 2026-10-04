@@ -20,6 +20,11 @@ export class Catalog {
     return this.data.categories;
   }
 
+  /** Every bundled picture, for storing them all offline. */
+  get ids(): number[] {
+    return this.data.items.map(([id]) => id);
+  }
+
   /** Pictograms whose keyword starts with or contains the query; all drawings of a word are kept. */
   searchWord(query: string): Pictogram[] {
     const q = normalize(query);

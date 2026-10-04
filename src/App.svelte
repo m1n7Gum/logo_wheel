@@ -7,10 +7,14 @@
   import { app } from './lib/state/app.svelte';
   import { applyTheme } from './themes/registry';
   import { requestPersistentStorage } from './lib/storage/settings';
+  import { cacheAllPictures } from './lib/pictures/offlineCache';
 
   $effect(() => applyTheme(app.theme));
   $effect(() => {
     void requestPersistentStorage();
+    // Give the app a moment to settle before downloading pictures in the background.
+    const timer = setTimeout(() => void cacheAllPictures(), 3000);
+    return () => clearTimeout(timer);
   });
 </script>
 
