@@ -1,26 +1,36 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
+  import type { Entry } from '../lib/model/wheel';
 
   let {
-    label,
+    entry,
     willDisappear,
     onclose,
-  }: { label: string; willDisappear: boolean; onclose: () => void } = $props();
+  }: { entry: Entry; willDisappear: boolean; onclose: () => void } = $props();
 
-  // Shrink long labels so they still fit on one or two lines.
-  const fontSize = $derived(`min(${Math.round(150 / Math.max(2, [...label].length))}cqw, 26cqh)`);
+  // Shrink long labels so they still fit on one or two lines; next to a picture they stay smaller.
+  const fontSize = $derived(
+    `min(${Math.round(150 / Math.max(2, [...entry.label].length))}cqw, ${entry.image ? 9 : 26}cqh)`,
+  );
   const hint = $derived(willDisappear ? 'Tippen – Feld verschwindet vom Rad' : 'Tippen zum Weitermachen');
 </script>
+
+{#snippet content()}
+  <div class="content">
+    {#if entry.image}<img src={entry.image.src} alt={entry.label} />{/if}
+    {#if entry.label}<span class="label" style:font-size={fontSize}>{entry.label}</span>{/if}
+  </div>
+{/snippet}
 
 <button class="backdrop" onclick={onclose} transition:fade={{ duration: 150 }} aria-label="Ergebnis schließen">
   <div class="card" transition:scale={{ duration: 250, start: 0.7 }}>
     <!-- Upside-down copy for the person sitting opposite. -->
     <div class="half flipped">
-      <span class="label" style:font-size={fontSize}>{label}</span>
+      {@render content()}
     </div>
     <div class="divider"></div>
     <div class="half">
-      <span class="label" style:font-size={fontSize}>{label}</span>
+      {@render content()}
       <span class="hint">{hint}</span>
     </div>
   </div>
@@ -59,6 +69,21 @@
   }
   .flipped {
     transform: rotate(180deg);
+  }
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1cqh;
+    min-height: 0;
+  }
+  img {
+    height: 30cqh;
+    aspect-ratio: 1;
+    object-fit: contain;
+    padding: 1.5cqh;
+    border-radius: 3cqh;
+    background: #fff;
   }
   .label {
     font-family: var(--font-family);

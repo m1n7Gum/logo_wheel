@@ -32,6 +32,14 @@ describe('wheelRepository', () => {
     expect(createLocalStorageRepository(storage).loadAll()).toEqual([]);
   });
 
+  it('keeps inline pictures and drops wheels with external picture URLs', () => {
+    const withPicture = createWheel('Bilder');
+    withPicture.entries.push({ id: 'a', label: '', image: { src: 'data:image/png;base64,AAAA', arasaacId: 1 } });
+    const external = createWheel('Extern');
+    external.entries.push({ id: 'b', label: 'x', image: { src: 'https://example.com/x.png' } });
+    expect(migrate({ version: 1, wheels: [withPicture, external] }).wheels).toEqual([withPicture]);
+  });
+
   it('rejects data from a newer version and drops invalid wheels', () => {
     expect(() => migrate({ version: 999, wheels: [] })).toThrow();
     const valid = createWheel('ok', ['x']);

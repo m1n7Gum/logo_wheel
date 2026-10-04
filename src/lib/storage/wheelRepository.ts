@@ -1,4 +1,4 @@
-import type { Wheel } from '../model/wheel';
+import type { Entry, Wheel } from '../model/wheel';
 
 /** Bump when the stored shape changes and add a step to `migrate`. */
 export const SCHEMA_VERSION = 1;
@@ -84,8 +84,17 @@ function isWheel(value: unknown): value is Wheel {
     typeof value.id === 'string' &&
     typeof value.name === 'string' &&
     Array.isArray(value.entries) &&
-    value.entries.every(
-      (e) => isRecord(e) && typeof e.id === 'string' && typeof e.label === 'string',
-    )
+    value.entries.every(isEntry)
+  );
+}
+
+function isEntry(value: unknown): value is Entry {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.label !== 'string') return false;
+  if (value.image === undefined) return true;
+  // Only inline pictures: a backup file must not make the app load images from elsewhere.
+  return (
+    isRecord(value.image) &&
+    typeof value.image.src === 'string' &&
+    /^data:image\/(png|jpeg|webp);base64,/.test(value.image.src)
   );
 }

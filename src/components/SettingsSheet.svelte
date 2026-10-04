@@ -5,8 +5,10 @@
   import { app } from '../lib/state/app.svelte';
   import { themes } from '../themes/registry';
   import type { Theme } from '../themes/types';
+  import { ARASAAC_CREDIT } from '../lib/pictures/arasaac';
 
   let message = $state('');
+
   let fileInput: HTMLInputElement | undefined = $state();
 
   function swatch(theme: Theme): string {
@@ -94,10 +96,19 @@
     {#if message}<p class="note">{message}</p>{/if}
   </section>
 
+  <section>
+    <h2>Bilder</h2>
+    <p class="note">Alle Bilder sind in der App enthalten und funktionieren ohne Internet.</p>
+    <p class="note credit">{ARASAAC_CREDIT}</p>
+  </section>
+
   <InstallHint />
 </div>
 
 <style>
+  .credit {
+    font-size: 12px;
+  }
   .backdrop {
     position: fixed;
     inset: 0;

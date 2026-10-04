@@ -144,7 +144,13 @@ export class AppState {
   }
 
   private persistWheels(): void {
-    this.repo.saveAll($state.snapshot(this.wheels));
+    try {
+      this.repo.saveAll($state.snapshot(this.wheels));
+    } catch (err) {
+      // Usually a full storage quota – mostly from many pictures.
+      console.error('Räder konnten nicht gespeichert werden', err);
+      this.showToast('Speicher voll – bitte ein paar Bilder oder Räder löschen');
+    }
   }
 }
 

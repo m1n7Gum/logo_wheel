@@ -132,7 +132,7 @@
 
 {#if result}
   <ResultOverlay
-    label={result.label}
+    entry={result}
     willDisappear={!!app.activeWheel?.removeAfterPick}
     onclose={closeResult}
   />

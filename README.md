@@ -16,6 +16,18 @@ Gut zu wissen:
 - Alle Räder werden automatisch **auf dem jeweiligen Tablet** gespeichert.
 - Unter *Optionen → Sicherung* lässt sich eine Backup-Datei speichern und wieder laden, z.B. um Räder auf ein anderes Tablet zu übertragen.
 - Updates kommen automatisch, sobald die App mit Internet gestartet wird.
+- **Bilder für Kinder, die noch nicht lesen:** Im Editor neben einem Feld auf das Bild-Symbol tippen (oder unten auf *Bild*).
+  - *Wort*: nach einem Wort suchen. Mit leerem Suchfeld erscheinen Kategorien (Tiere, Essen, Spielzeug …).
+  - *Laut*: z.B. „sch“ eingeben und wählen, ob der Laut am Anfang, in der Mitte oder am Ende stehen soll. Gesucht wird nach Buchstaben, nicht nach Aussprache („st“ findet auch „Stern“).
+  - Rund 2.000 ausgewählte Bilder sind in der App enthalten. Suche und Bilder funktionieren komplett ohne Internet, die App ruft keine fremden Server auf.
+
+### Bildquelle
+
+Die Bilder kommen aus der Piktogramm-Sammlung von [ARASAAC](https://arasaac.org): Autor Sergio Palao, Eigentum der Regierung von Aragón (Spanien), Lizenz [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de). Erlaubt ist damit nur nicht-kommerzielle Nutzung mit Quellenangabe. Die App nennt die Quelle in der Bildersuche und unter *Optionen → Bilder*.
+
+Die Bilder liegen als WebP in `public/pictograms/` (ca. 19 MB), die Wortliste für die Suche in `src/lib/pictures/arasaac-index.json`. Beides erzeugt `npm run update-pictograms` aus dem ARASAAC-Katalog; danach die Änderungen committen.
+
+Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca. 2.000 ARASAAC-IDs). Die Auswahl ist für Sprachtherapie mit Kindern von 3 bis 10 geprüft: alltagsnahe Nomen und gut darstellbare Verben, ohne Fachbegriffe, Medizin, Sexualität, Gewalt, Geld- und Verwaltungsthemen. Sie wurde einmalig mit KI vorsortiert und von Hand nachgearbeitet. Neue ARASAAC-Bilder kommen nur rein, wenn ihre ID dort ergänzt wird; `npm run update-pictograms -- --pictures <datei>` exportiert alle Kandidaten mit Wörtern zum Durchsehen. Zusätzlich filtert das Skript Bilder, die ARASAAC als sexuell oder gewalttätig markiert, und einzelne Wörter (`BLOCKED_WORDS`, `scripts/pictogram-exclusions.json`).
 
 ## Entwicklung
 
@@ -37,9 +49,12 @@ Stack: Vite, Svelte 5, TypeScript, vite-plugin-pwa.
 ## Projektstruktur
 
 ```
+scripts/            update-pictograms.mjs: Bildauswahl von ARASAAC holen
+public/pictograms/  Mitgelieferte Bilder (erzeugt, nicht von Hand ändern)
 src/
   lib/model/        Datentypen (Wheel, Entry)
   lib/storage/      Speicherung (localStorage, Schema-Version, Backup), Einstellungen
+  lib/pictures/     Mitgelieferte ARASAAC-Bilder: Suche nach Wort, Laut und Kategorie
   lib/spin/         Dreh-Logik (rein, getestet) und aktuelle Runde (verschwundene Felder)
   lib/audio/        Synthetisches Rattern (Web Audio, keine Audiodateien)
   lib/state/        Zentraler App-Zustand; alle Änderungen laufen hier durch und werden gespeichert

@@ -8,11 +8,13 @@
     "build": "svelte-check && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "check": "svelte-check"
+    "check": "svelte-check",
+    "update-pictograms": "node scripts/update-pictograms.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.1.1",
     "@tsconfig/svelte": "^5.0.8",
+    "sharp": "^0.35.5",
     "svelte": "^5.57.1",
     "svelte-check": "^4.7.6",
     "typescript": "^5.9.3",

@@ -27,7 +27,7 @@
   const segments = $derived.by(() => {
     const n = entries.length;
     const seg = segmentAngle(n);
-    const radial = useRadialLabels(entries, seg);
+    const radial = useRadialLabels(entries.filter((e) => !e.image), seg);
     return entries.map((entry, i) => ({
       entry,
       path: n === 1 ? null : sectorPath(i * seg, (i + 1) * seg),
@@ -35,6 +35,7 @@
       fill: colorAt(theme.segmentColors, i, n),
       textColor: colorAt(theme.segmentTextColors ?? [theme.tokens.text], i, n),
       label: radial ? alongLayout(entry.label, seg) : acrossLayout(entry.label, seg),
+      picture: entry.image ? pictureLayout(entry.label, seg) : null,
     }));
   });
 
@@ -77,6 +78,19 @@
     return { radial: true, r, size: Math.min(MAX_FONT, thickness, length / (glyphs(label) * 0.6)) };
   }
 
+  /**
+   * Picture on a white disc (pictograms are dark line art and need a light ground on any
+   * segment color), upright at the pointer. A label, if any, sits small below it.
+   */
+  function pictureLayout(label: string, seg: number) {
+    const r = R * 0.66;
+    const disc = Math.min(R * 0.27, r * Math.sin(halfAngle(seg)) * 0.9);
+    const labelR = r - disc - R * 0.06;
+    const labelWidth = 2 * labelR * Math.sin(halfAngle(seg)) * 0.8;
+    const labelSize = Math.min(MAX_FONT * 0.55, labelWidth / (glyphs(label) * 0.62));
+    return { r, disc, size: disc * 1.5, labelR, labelSize: label && labelSize >= R * 0.04 ? labelSize : 0 };
+  }
+
   /** One orientation for the whole wheel, chosen by what fits the longest label better. */
   function useRadialLabels(list: Entry[], seg: number): boolean {
     if (seg >= 60) return false;
@@ -97,6 +111,16 @@
           <circle r={R} fill={s.fill} />
         {/if}
         <g transform="rotate({s.mid})">
+          {#if s.picture}
+            {@const p = s.picture}
+            <circle cy={-p.r} r={p.disc} fill="#fff" />
+            <image href={s.entry.image?.src} x={-p.size / 2} y={-p.r - p.size / 2} width={p.size} height={p.size} />
+            {#if p.labelSize}
+              <text y={-p.labelR} font-size={p.labelSize} fill={s.textColor} text-anchor="middle" dominant-baseline="central"
+                >{s.entry.label}</text
+              >
+            {/if}
+          {:else}
           <text
             transform={s.label.radial ? 'rotate(-90)' : undefined}
             x={s.label.radial ? s.label.r : 0}
@@ -106,6 +130,7 @@
             text-anchor="middle"
             dominant-baseline="central">{s.entry.label}</text
           >
+          {/if}
         </g>
       </g>
     {/each}
