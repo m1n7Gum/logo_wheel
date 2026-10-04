@@ -86,6 +86,13 @@
     lastCategory = category;
   });
 
+  /** One tap empties the search – deleting letter by letter is tedious on a tablet. */
+  function clearSearch() {
+    if (mode === 'word') query = '';
+    else sound = '';
+    input?.focus();
+  }
+
   function switchMode(next: 'word' | 'sound') {
     mode = next;
     queueMicrotask(() => input?.focus());
@@ -123,14 +130,19 @@
 
   <div class="controls">
     {#if mode === 'word'}
-      <input
-        type="text"
-        bind:this={input}
-        bind:value={query}
-        placeholder="Suchwort, z.B. Maus"
-        enterkeyhint="search"
-        autocomplete="off"
-      />
+      <div class="search-field">
+        <input
+          type="text"
+          bind:this={input}
+          bind:value={query}
+          placeholder="Suchwort, z.B. Maus"
+          enterkeyhint="search"
+          autocomplete="off"
+        />
+        {#if query}
+          <button class="clear" onclick={clearSearch} aria-label="Suche leeren"><Icon name="close" size={20} /></button>
+        {/if}
+      </div>
       {#if showCategories && catalog}
         <div class="chips">
           {#each catalog.categories as c (c.id)}
@@ -139,15 +151,20 @@
         </div>
       {/if}
     {:else}
-      <input
-        type="text"
-        bind:this={input}
-        bind:value={sound}
-        placeholder="Laut, z.B. sch, k oder st"
-        enterkeyhint="search"
-        autocomplete="off"
-        autocapitalize="off"
-      />
+      <div class="search-field">
+        <input
+          type="text"
+          bind:this={input}
+          bind:value={sound}
+          placeholder="Laut, z.B. sch, k oder st"
+          enterkeyhint="search"
+          autocomplete="off"
+          autocapitalize="off"
+        />
+        {#if sound}
+          <button class="clear" onclick={clearSearch} aria-label="Suche leeren"><Icon name="close" size={20} /></button>
+        {/if}
+      </div>
       <div class="chips">
         {#each POSITIONS as p (p.id)}
           <button class="chip" class:active={position === p.id} onclick={() => (position = p.id)}>{p.label}</button>
@@ -253,6 +270,33 @@
   .controls {
     display: grid;
     gap: 10px;
+  }
+  .search-field {
+    position: relative;
+  }
+  .search-field input {
+    width: 100%;
+    padding-right: 52px;
+  }
+  .clear {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .clear:hover,
+  .clear:focus-visible {
+    background: var(--surface);
+    color: var(--text);
   }
   .chips {
     display: flex;
