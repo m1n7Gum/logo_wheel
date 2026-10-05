@@ -4,8 +4,11 @@ import { pictogramUrl, type Pictogram } from './arasaac';
 export interface CatalogData {
   updated: string;
   categories: { id: string; label: string }[];
-  /** [pictogram id, [[keyword, ARASAAC keyword type]], category bit mask] */
-  items: [number, [string, number][], number][];
+  /**
+   * [pictogram id, [[keyword, ARASAAC keyword type, frequency]], category bit mask].
+   * Frequency: how common the word is in spoken German (Zipf scale × 10), 0 if unknown.
+   */
+  items: [number, [string, number, number?][], number][];
 }
 
 export type SoundPosition = 'start' | 'middle' | 'end' | 'any';
@@ -25,58 +28,65 @@ export class Catalog {
     return this.data.items.map(([id]) => id);
   }
 
-  /** Pictograms whose keyword starts with or contains the query; all drawings of a word are kept. */
+  /**
+   * Pictograms whose keyword starts with or contains the query, common words first within
+   * each kind of match; all drawings of a word are kept.
+   */
   searchWord(query: string): Pictogram[] {
     const q = normalize(query);
     if (!q) return [];
-    const hits: { p: Pictogram; rank: number }[] = [];
+    const hits: { p: Pictogram; freq: number; rank: number }[] = [];
     for (const [id, words] of this.data.items) {
-      let best: { word: string; rank: number } | null = null;
-      for (const [word] of words) {
+      let best: { word: string; freq: number; rank: number } | null = null;
+      for (const [word, , freq = 0] of words) {
         const w = normalize(word);
         const rank = w === q ? 0 : w.startsWith(q) ? 1 : w.includes(q) ? 2 : -1;
-        if (rank >= 0 && (!best || rank < best.rank)) best = { word, rank };
+        if (rank >= 0 && (!best || rank < best.rank || (rank === best.rank && freq > best.freq))) {
+          best = { word, freq, rank };
+        }
       }
-      if (best) hits.push({ p: toPictogram(id, best.word), rank: best.rank * 1000 + best.word.length });
+      if (best) hits.push({ p: toPictogram(id, best.word), freq: best.freq, rank: best.rank });
     }
-    return hits.sort((a, b) => a.rank - b.rank).map((h) => h.p);
+    return hits
+      .sort((a, b) => a.rank - b.rank || b.freq - a.freq || a.p.keyword.length - b.p.keyword.length)
+      .map((h) => h.p);
   }
 
   /**
    * Single words that contain a sound (written as letters, e.g. „sch“) at the given position.
-   * One picture per word, so the list reads like a word list for therapy.
+   * One picture per word, so the list reads like a word list for therapy; common words first.
    */
   searchSound(sound: string, position: SoundPosition, nounsOnly = false): Pictogram[] {
     const s = normalize(sound);
     if (!s) return [];
     const seen = new Set<string>();
-    const hits: Pictogram[] = [];
+    const hits: { p: Pictogram; freq: number }[] = [];
     for (const [id, words] of this.data.items) {
-      for (const [word, type] of words) {
+      for (const [word, type, freq = 0] of words) {
         if (nounsOnly && type !== NOUN) continue;
         const w = normalize(word);
         if (w.includes(' ') || seen.has(w) || !hasSound(w, s, position)) continue;
         seen.add(w);
-        hits.push(toPictogram(id, word));
+        hits.push({ p: toPictogram(id, word), freq });
       }
     }
-    return hits.sort((a, b) => a.keyword.localeCompare(b.keyword, 'de'));
+    return byFrequency(hits);
   }
 
-  /** Pictograms of a category in ARASAAC's order, one per word. */
+  /** Pictograms of a category, one per word, common words first. */
   inCategory(categoryId: string): Pictogram[] {
     const bit = this.data.categories.findIndex((c) => c.id === categoryId);
     if (bit === -1) return [];
     const seen = new Set<string>();
-    const hits: Pictogram[] = [];
+    const hits: { p: Pictogram; freq: number }[] = [];
     for (const [id, words, mask] of this.data.items) {
       if (!(mask & (1 << bit))) continue;
-      const word = words[0][0];
+      const [word, , freq = 0] = words[0];
       if (seen.has(word)) continue;
       seen.add(word);
-      hits.push(toPictogram(id, word));
+      hits.push({ p: toPictogram(id, word), freq });
     }
-    return hits;
+    return byFrequency(hits);
   }
 }
 
@@ -117,6 +127,11 @@ function letterUnits(word: string): [number, number][] {
     i += len || 1;
   }
   return units;
+}
+
+/** Common words first, words of equal frequency alphabetically. */
+function byFrequency(hits: { p: Pictogram; freq: number }[]): Pictogram[] {
+  return hits.sort((a, b) => b.freq - a.freq || a.p.keyword.localeCompare(b.p.keyword, 'de')).map((h) => h.p);
 }
 
 function normalize(text: string): string {

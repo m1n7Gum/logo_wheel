@@ -10,6 +10,8 @@ import sharp from 'sharp';
 
 const SOURCE = 'https://api.arasaac.org/v1/pictograms/all/de';
 const IMAGE = (id) => `https://static.arasaac.org/pictograms/${id}/${id}_300.png`;
+/** How often words are used in spoken German: OpenSubtitles 2018, via hermitdave/FrequencyWords (CC BY-SA 4.0). */
+const FREQUENCIES = 'https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/de/de_full.txt';
 const PICTURE_DIR = new URL('../public/pictograms/', import.meta.url);
 const INDEX = new URL('../src/lib/pictures/arasaac-index.json', import.meta.url);
 const EXCLUSIONS = new URL('./pictogram-exclusions.json', import.meta.url);
@@ -153,12 +155,33 @@ async function worker() {
 }
 await Promise.all(Array.from({ length: PARALLEL_DOWNLOADS }, worker));
 
+// ---- Word frequency, so common words come first in the picker ----
+
+const freqRes = await fetch(FREQUENCIES);
+if (!freqRes.ok) throw new Error(`Worthäufigkeiten: Antwort ${freqRes.status}`);
+const counts = new Map();
+let total = 0;
+for (const line of (await freqRes.text()).split('\n')) {
+  const [word, count] = line.split(' ');
+  if (!word || !count) continue;
+  total += +count;
+  // Counted without case, so „essen“ and „Essen“ count together.
+  const key = word.toLocaleLowerCase('de');
+  counts.set(key, (counts.get(key) ?? 0) + +count);
+}
+/** Zipf scale × 10 (log10 of uses per billion words): about 70 for „Hund“, 0 if unknown. */
+const frequency = (word) => {
+  const count = counts.get(word.toLocaleLowerCase('de'));
+  return count ? Math.max(1, Math.round(Math.log10((count / total) * 1e9) * 10)) : 0;
+};
+for (const item of items) item[1] = item[1].map(([w, type]) => [w, type, frequency(w)]);
+
 // ---- Search index (only pictures that are really there) ----
 
 const index = {
   updated: new Date().toISOString().slice(0, 10),
   categories: CATEGORIES.map(({ id, label }) => ({ id, label })),
-  // [pictogram id, [[keyword, ARASAAC keyword type]], category bit mask]
+  // [pictogram id, [[keyword, ARASAAC keyword type, frequency]], category bit mask]
   items: items.filter(([id]) => !failed.has(id)),
 };
 await writeFile(INDEX, JSON.stringify(index));

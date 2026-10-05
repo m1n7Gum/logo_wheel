@@ -68,7 +68,23 @@ describe('Catalog', () => {
 
   it('lists a category', () => {
     expect(words(catalog.inCategory('animals'))).toEqual(['Schaf']);
-    expect(words(catalog.inCategory('food'))).toEqual(['Käse', 'Eis essen']);
+    expect(words(catalog.inCategory('food'))).toEqual(['Eis essen', 'Käse']);
     expect(catalog.inCategory('nope')).toEqual([]);
+  });
+
+  it('puts common words first', () => {
+    const common = new Catalog({
+      ...data,
+      items: [
+        [1, [['Schaf', 2, 45]], 1],
+        [2, [['Schule', 2, 54]], 0],
+        [3, [['Schal', 2, 0]], 1],
+        [4, [['Schuh', 2, 45]], 1],
+        [5, [['Schulbus', 2, 30]], 0],
+      ],
+    });
+    expect(words(common.searchSound('sch', 'start'))).toEqual(['Schule', 'Schaf', 'Schuh', 'Schulbus', 'Schal']);
+    expect(words(common.inCategory('animals'))).toEqual(['Schaf', 'Schuh', 'Schal']);
+    expect(words(common.searchWord('schu'))).toEqual(['Schule', 'Schuh', 'Schulbus']);
   });
 });
