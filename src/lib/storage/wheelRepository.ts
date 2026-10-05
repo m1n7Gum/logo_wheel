@@ -92,9 +92,10 @@ function isEntry(value: unknown): value is Entry {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.label !== 'string') return false;
   if (value.image === undefined) return true;
   // Only inline pictures: a backup file must not make the app load images from elsewhere.
+  // SVG covers the drawn Mundmotorik pictures; as an image it cannot run scripts or load anything.
   return (
     isRecord(value.image) &&
     typeof value.image.src === 'string' &&
-    /^data:image\/(png|jpeg|webp);base64,/.test(value.image.src)
+    /^data:image\/((png|jpeg|webp);base64,|svg\+xml,)/.test(value.image.src)
   );
 }

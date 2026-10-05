@@ -1,12 +1,15 @@
 <script lang="ts" module>
   import type { SoundPosition } from '../lib/pictures/catalog';
 
+  type Mode = 'word' | 'sound' | 'motor';
+
   // Remembered while the app is open, so picking several pictures for one sound is quick.
-  let lastMode: 'word' | 'sound' = 'word';
+  let lastMode: Mode = 'word';
   let lastSound = '';
   let lastPosition: SoundPosition = 'start';
   let lastNounsOnly = true;
   let lastCategory = 'animals';
+  let lastAnimal = 'dino';
 </script>
 
 <script lang="ts">
@@ -14,19 +17,23 @@
   import { fade } from 'svelte/transition';
   import Icon from './Icon.svelte';
   import type { EntryImage } from '../lib/model/wheel';
-  import { ARASAAC_CREDIT, fetchPictogram, type Pictogram } from '../lib/pictures/arasaac';
+  import { fetchPictogram, type Pictogram } from '../lib/pictures/arasaac';
   import { loadCatalog, type Catalog } from '../lib/pictures/catalog';
+  import { MOTOR_ANIMALS, MOTOR_EXERCISES, motorPictureUrl } from '../lib/pictures/mouthMotor';
 
   let {
     initialQuery = '',
     hasImage = false,
     onpick,
+    onpickall,
     onremove,
     onclose,
   }: {
     initialQuery?: string;
     hasImage?: boolean;
     onpick: (image: EntryImage, keyword: string) => void;
+    /** Adds several pictures at once; only offered when the dialog adds new entries. */
+    onpickall?: (pictures: { image: EntryImage; keyword: string }[]) => void;
     onremove?: () => void;
     onclose: () => void;
   } = $props();
@@ -41,13 +48,14 @@
 
   // The dialog is recreated for every pick, so the initial value is all it needs.
   // svelte-ignore state_referenced_locally
-  let mode = $state<'word' | 'sound'>(initialQuery.trim() ? 'word' : lastMode);
+  let mode = $state<Mode>(initialQuery.trim() ? 'word' : lastMode);
   // svelte-ignore state_referenced_locally
   let query = $state(initialQuery);
   let sound = $state(lastSound);
   let position = $state(lastPosition);
   let nounsOnly = $state(lastNounsOnly);
   let category = $state(lastCategory);
+  let animal = $state(lastAnimal);
   let limit = $state(PAGE);
 
   let catalog = $state<Catalog | null>(null);
@@ -70,6 +78,10 @@
     return query.trim() ? catalog.searchWord(query) : catalog.inCategory(category);
   });
   const showCategories = $derived(mode === 'word' && !query.trim());
+  const motorPictures = $derived.by(() => {
+    const a = MOTOR_ANIMALS.find((x) => x.id === animal) ?? MOTOR_ANIMALS[0];
+    return MOTOR_EXERCISES.map((e) => ({ id: e.id, keyword: e.label, image: { src: motorPictureUrl(a, e) } }));
+  });
 
   // A new search starts at the top again.
   $effect(() => {
@@ -84,6 +96,7 @@
     lastPosition = position;
     lastNounsOnly = nounsOnly;
     lastCategory = category;
+    lastAnimal = animal;
   });
 
   /** One tap empties the search – deleting letter by letter is tedious on a tablet. */
@@ -93,7 +106,7 @@
     input?.focus();
   }
 
-  function switchMode(next: 'word' | 'sound') {
+  function switchMode(next: Mode) {
     mode = next;
     queueMicrotask(() => input?.focus());
   }
@@ -109,6 +122,7 @@
       loadingId = null;
     }
   }
+
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
@@ -123,6 +137,9 @@
       </button>
       <button role="tab" aria-selected={mode === 'sound'} class:active={mode === 'sound'} onclick={() => switchMode('sound')}>
         Laut
+      </button>
+      <button role="tab" aria-selected={mode === 'motor'} class:active={mode === 'motor'} onclick={() => switchMode('motor')}>
+        Mundmotorik
       </button>
     </div>
     <button class="ghost icon" onclick={onclose} aria-label="Schließen"><Icon name="close" /></button>
@@ -150,6 +167,15 @@
           {/each}
         </div>
       {/if}
+    {:else if mode === 'motor'}
+      <div class="chips">
+        {#each MOTOR_ANIMALS as a (a.id)}
+          <button class="chip" class:active={animal === a.id} onclick={() => (animal = a.id)}>{a.label}</button>
+        {/each}
+        {#if onpickall}
+          <button class="ghost all" onclick={() => onpickall(motorPictures)}><Icon name="plus" />Alle {motorPictures.length} hinzufügen</button>
+        {/if}
+      </div>
     {:else}
       <div class="search-field">
         <input
@@ -175,7 +201,18 @@
   </div>
 
   <div class="results">
-    {#if catalogError}
+    {#if mode === 'motor'}
+      <ul>
+        {#each motorPictures as m (m.id)}
+          <li>
+            <button class="tile" onclick={() => onpick(m.image, m.keyword)} aria-label={m.keyword}>
+              <img src={m.image.src} alt="" width="256" height="256" />
+              <span>{m.keyword}</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {:else if catalogError}
       <p class="note">Die Bilderliste konnte nicht geladen werden. Bitte die App neu starten.</p>
     {:else if !catalog}
       <p class="note">Bilder werden geladen …</p>
@@ -203,15 +240,16 @@
     {/if}
   </div>
 
-  <footer>
-    {#if pickError}
-      <p class="error">Das Bild konnte nicht geladen werden. Bitte die App neu starten und noch einmal versuchen.</p>
-    {/if}
-    {#if hasImage && onremove}
-      <button class="ghost destructive-text" onclick={onremove}><Icon name="trash" />Bild entfernen</button>
-    {/if}
-    <p class="credit">{ARASAAC_CREDIT}</p>
-  </footer>
+  {#if pickError || (hasImage && onremove)}
+    <footer>
+      {#if pickError}
+        <p class="error">Das Bild konnte nicht geladen werden. Bitte die App neu starten und noch einmal versuchen.</p>
+      {/if}
+      {#if hasImage && onremove}
+        <button class="ghost destructive-text" onclick={onremove}><Icon name="trash" />Bild entfernen</button>
+      {/if}
+    </footer>
+  {/if}
 </div>
 
 <style>
@@ -395,9 +433,13 @@
     gap: 8px;
     justify-items: start;
   }
-  .credit {
-    margin: 0;
-    font-size: 12px;
-    color: var(--text-muted);
+  .all {
+    margin-left: auto;
+  }
+  /* Three tabs and the title do not fit next to each other on a phone. */
+  @media (max-width: 560px) {
+    h2 {
+      display: none;
+    }
   }
 </style>

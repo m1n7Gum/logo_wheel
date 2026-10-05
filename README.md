@@ -23,11 +23,17 @@ Gut zu wissen:
 
 ### Bildquelle
 
-Die Bilder kommen aus der Piktogramm-Sammlung von [ARASAAC](https://arasaac.org): Autor Sergio Palao, Eigentum der Regierung von Aragón (Spanien), Lizenz [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de). Erlaubt ist damit nur nicht-kommerzielle Nutzung mit Quellenangabe. Die App nennt die Quelle in der Bildersuche und unter *Optionen → Bilder*.
+Die Bilder kommen aus der Piktogramm-Sammlung von [ARASAAC](https://arasaac.org): Autor Sergio Palao, Eigentum der Regierung von Aragón (Spanien), Lizenz [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de). Erlaubt ist damit nur nicht-kommerzielle Nutzung mit Quellenangabe. Die App nennt die Quelle unter *Optionen → Bilder*.
 
 Die Bilder liegen als WebP in `public/pictograms/` (ca. 19 MB), die Wortliste für die Suche in `src/lib/pictures/arasaac-index.json`. Beides erzeugt `npm run update-pictograms` aus dem ARASAAC-Katalog; danach die Änderungen committen.
 
+Die Bildersuche zeigt häufige Wörter zuerst. Die Häufigkeit (Zipf-Skala × 10, im Index pro Wort) stammt aus deutschen Filmuntertiteln, also gesprochener Sprache: [OpenSubtitles 2018 über hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords) (CC BY-SA 4.0). Das Skript lädt die Liste beim Aktualisieren; Wörter, die dort fehlen, stehen am Ende.
+
 Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca. 2.000 ARASAAC-IDs). Die Auswahl ist für Sprachtherapie mit Kindern von 3 bis 10 geprüft: alltagsnahe Nomen und gut darstellbare Verben, ohne Fachbegriffe, Medizin, Sexualität, Gewalt, Geld- und Verwaltungsthemen. Sie wurde einmalig mit KI vorsortiert und von Hand nachgearbeitet. Neue ARASAAC-Bilder kommen nur rein, wenn ihre ID dort ergänzt wird; `npm run update-pictograms -- --pictures <datei>` exportiert alle Kandidaten mit Wörtern zum Durchsehen. Zusätzlich filtert das Skript Bilder, die ARASAAC als sexuell oder gewalttätig markiert, und einzelne Wörter (`BLOCKED_WORDS`, `scripts/pictogram-exclusions.json`).
+
+### Mundmotorik
+
+Der Reiter *Mundmotorik* in der Bildersuche hat zehn Übungen (Zunge zum Kinn, zur Nase, links und rechts, in die Backe, Lippen ablecken, breit lachen, Backen aufblasen, Kussmund, pusten, ansaugen), jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle 10 hinzufügen“ füllt ein Rad auf einmal.
 
 ## Entwicklung
 
@@ -54,7 +60,7 @@ public/pictograms/  Mitgelieferte Bilder (erzeugt, nicht von Hand ändern)
 src/
   lib/model/        Datentypen (Wheel, Entry)
   lib/storage/      Speicherung (localStorage, Schema-Version, Backup), Einstellungen
-  lib/pictures/     Mitgelieferte ARASAAC-Bilder: Suche nach Wort, Laut und Kategorie
+  lib/pictures/     Mitgelieferte ARASAAC-Bilder (Suche nach Wort, Laut, Kategorie), Mundmotorik-Bilder, eigene Fotos
   lib/spin/         Dreh-Logik (rein, getestet) und aktuelle Runde (verschwundene Felder)
   lib/audio/        Synthetisches Rattern (Web Audio, keine Audiodateien)
   lib/state/        Zentraler App-Zustand; alle Änderungen laufen hier durch und werden gespeichert

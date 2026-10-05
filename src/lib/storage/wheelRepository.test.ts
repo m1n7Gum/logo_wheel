@@ -40,6 +40,12 @@ describe('wheelRepository', () => {
     expect(migrate({ version: 1, wheels: [withPicture, external] }).wheels).toEqual([withPicture]);
   });
 
+  it('keeps the drawn Mundmotorik pictures', () => {
+    const motor = createWheel('Mundmotorik');
+    motor.entries.push({ id: 'a', label: 'Pusten', image: { src: 'data:image/svg+xml,%3Csvg%3E%3C%2Fsvg%3E' } });
+    expect(migrate({ version: 1, wheels: [motor] }).wheels).toEqual([motor]);
+  });
+
   it('rejects data from a newer version and drops invalid wheels', () => {
     expect(() => migrate({ version: 999, wheels: [] })).toThrow();
     const valid = createWheel('ok', ['x']);

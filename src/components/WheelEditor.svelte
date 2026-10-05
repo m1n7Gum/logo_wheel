@@ -45,6 +45,11 @@
     picker = null;
   }
 
+  function pickImages(pictures: { image: EntryImage; keyword: string }[]) {
+    for (const { image, keyword } of pictures) draft.entries.push(createEntry(keyword, image));
+    picker = null;
+  }
+
   function removeImage() {
     if (pickerEntry) delete pickerEntry.image;
     picker = null;
@@ -172,6 +177,7 @@
     initialQuery={pickerEntry ? pickerEntry.label : newLabel}
     hasImage={!!pickerEntry?.image}
     onpick={pickImage}
+    onpickall={pickerEntry ? undefined : pickImages}
     onremove={removeImage}
     onclose={() => (picker = null)}
   />
