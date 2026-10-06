@@ -1,13 +1,15 @@
 <script lang="ts" module>
   import type { SoundPosition } from '../lib/pictures/catalog';
 
-  type Mode = 'word' | 'sound' | 'motor';
+  /** Word and sound are two ways to search the same pictures; mouth motor exercises are a set of their own. */
+  type SearchBy = 'word' | 'sound';
 
   // Remembered while the app is open, so picking several pictures for one sound is quick.
-  let lastMode: Mode = 'word';
+  let lastMotor = false;
+  let lastSearchBy: SearchBy = 'word';
   let lastSound = '';
   let lastPosition: SoundPosition = 'start';
-  let lastNounsOnly = true;
+  let lastNounsOnly = false;
   let lastCategory = 'animals';
   let lastAnimal = 'dino';
 </script>
@@ -48,7 +50,9 @@
 
   // The dialog is recreated for every pick, so the initial value is all it needs.
   // svelte-ignore state_referenced_locally
-  let mode = $state<Mode>(initialQuery.trim() ? 'word' : lastMode);
+  let motor = $state(initialQuery.trim() ? false : lastMotor);
+  // svelte-ignore state_referenced_locally
+  let searchBy = $state<SearchBy>(initialQuery.trim() ? 'word' : lastSearchBy);
   // svelte-ignore state_referenced_locally
   let query = $state(initialQuery);
   let sound = $state(lastSound);
@@ -74,10 +78,10 @@
 
   const results = $derived.by((): Pictogram[] => {
     if (!catalog) return [];
-    if (mode === 'sound') return catalog.searchSound(sound, position, nounsOnly);
+    if (searchBy === 'sound') return catalog.searchSound(sound, position, nounsOnly);
     return query.trim() ? catalog.searchWord(query) : catalog.inCategory(category);
   });
-  const showCategories = $derived(mode === 'word' && !query.trim());
+  const showCategories = $derived(searchBy === 'word' && !query.trim());
   const motorPictures = $derived.by(() => {
     const a = MOTOR_ANIMALS.find((x) => x.id === animal) ?? MOTOR_ANIMALS[0];
     return MOTOR_EXERCISES.map((e) => ({ id: e.id, keyword: e.label, image: { src: motorPictureUrl(a, e) } }));
@@ -85,13 +89,14 @@
 
   // A new search starts at the top again.
   $effect(() => {
-    void [mode, query, sound, position, nounsOnly, category];
+    void [searchBy, query, sound, position, nounsOnly, category];
     limit = PAGE;
   });
 
   // Remember the settings for the next time the dialog opens.
   $effect(() => {
-    lastMode = mode;
+    lastMotor = motor;
+    lastSearchBy = searchBy;
     lastSound = sound;
     lastPosition = position;
     lastNounsOnly = nounsOnly;
@@ -101,13 +106,18 @@
 
   /** One tap empties the search – deleting letter by letter is tedious on a tablet. */
   function clearSearch() {
-    if (mode === 'word') query = '';
+    if (searchBy === 'word') query = '';
     else sound = '';
     input?.focus();
   }
 
-  function switchMode(next: Mode) {
-    mode = next;
+  function showMotor(next: boolean) {
+    motor = next;
+    if (!next) queueMicrotask(() => input?.focus());
+  }
+
+  function switchSearch(next: SearchBy) {
+    searchBy = next;
     queueMicrotask(() => input?.focus());
   }
 
@@ -132,13 +142,10 @@
   <header>
     <h2>Bild auswählen</h2>
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected={mode === 'word'} class:active={mode === 'word'} onclick={() => switchMode('word')}>
-        Wort
+      <button role="tab" aria-selected={!motor} class:active={!motor} onclick={() => showMotor(false)}>
+        Wörter
       </button>
-      <button role="tab" aria-selected={mode === 'sound'} class:active={mode === 'sound'} onclick={() => switchMode('sound')}>
-        Laut
-      </button>
-      <button role="tab" aria-selected={mode === 'motor'} class:active={mode === 'motor'} onclick={() => switchMode('motor')}>
+      <button role="tab" aria-selected={motor} class:active={motor} onclick={() => showMotor(true)}>
         Mundmotorik
       </button>
     </div>
@@ -146,28 +153,7 @@
   </header>
 
   <div class="controls">
-    {#if mode === 'word'}
-      <div class="search-field">
-        <input
-          type="text"
-          bind:this={input}
-          bind:value={query}
-          placeholder="Suchwort, z.B. Maus"
-          enterkeyhint="search"
-          autocomplete="off"
-        />
-        {#if query}
-          <button class="clear" onclick={clearSearch} aria-label="Suche leeren"><Icon name="close" size={20} /></button>
-        {/if}
-      </div>
-      {#if showCategories && catalog}
-        <div class="chips">
-          {#each catalog.categories as c (c.id)}
-            <button class="chip" class:active={category === c.id} onclick={() => (category = c.id)}>{c.label}</button>
-          {/each}
-        </div>
-      {/if}
-    {:else if mode === 'motor'}
+    {#if motor}
       <div class="chips">
         {#each MOTOR_ANIMALS as a (a.id)}
           <button class="chip" class:active={animal === a.id} onclick={() => (animal = a.id)}>{a.label}</button>
@@ -177,31 +163,62 @@
         {/if}
       </div>
     {:else}
-      <div class="search-field">
-        <input
-          type="text"
-          bind:this={input}
-          bind:value={sound}
-          placeholder="Laut, z.B. sch, k oder st"
-          enterkeyhint="search"
-          autocomplete="off"
-          autocapitalize="off"
-        />
-        {#if sound}
-          <button class="clear" onclick={clearSearch} aria-label="Suche leeren"><Icon name="close" size={20} /></button>
-        {/if}
+      <!-- One box, so it is clear that the switch decides how the text is searched. -->
+      <div class="search-row">
+        <span class="search-by" aria-hidden="true">Suchen nach</span>
+        <div class="segmented" role="radiogroup" aria-label="Suchen nach">
+          <button role="radio" aria-checked={searchBy === 'word'} class:active={searchBy === 'word'} onclick={() => switchSearch('word')}>
+            Wort
+          </button>
+          <button role="radio" aria-checked={searchBy === 'sound'} class:active={searchBy === 'sound'} onclick={() => switchSearch('sound')}>
+            Laut
+          </button>
+        </div>
+        <div class="search-field">
+          {#if searchBy === 'word'}
+            <input
+              type="text"
+              bind:this={input}
+              bind:value={query}
+              placeholder="Suchwort, z.B. Maus"
+              enterkeyhint="search"
+              autocomplete="off"
+            />
+          {:else}
+            <input
+              type="text"
+              bind:this={input}
+              bind:value={sound}
+              placeholder="Laut, z.B. sch, k oder st"
+              enterkeyhint="search"
+              autocomplete="off"
+              autocapitalize="off"
+            />
+          {/if}
+          {#if searchBy === 'word' ? query : sound}
+            <button class="clear" onclick={clearSearch} aria-label="Suche leeren"><Icon name="close" size={20} /></button>
+          {/if}
+        </div>
       </div>
-      <div class="chips">
-        {#each POSITIONS as p (p.id)}
-          <button class="chip" class:active={position === p.id} onclick={() => (position = p.id)}>{p.label}</button>
-        {/each}
-        <label class="nouns"><input type="checkbox" bind:checked={nounsOnly} />Nur Nomen</label>
-      </div>
+      {#if searchBy === 'sound'}
+        <div class="chips">
+          {#each POSITIONS as p (p.id)}
+            <button class="chip" class:active={position === p.id} onclick={() => (position = p.id)}>{p.label}</button>
+          {/each}
+          <label class="nouns"><input type="checkbox" bind:checked={nounsOnly} />Nur Nomen</label>
+        </div>
+      {:else if showCategories && catalog}
+        <div class="chips">
+          {#each catalog.categories as c (c.id)}
+            <button class="chip" class:active={category === c.id} onclick={() => (category = c.id)}>{c.label}</button>
+          {/each}
+        </div>
+      {/if}
     {/if}
   </div>
 
   <div class="results">
-    {#if mode === 'motor'}
+    {#if motor}
       <ul>
         {#each motorPictures as m (m.id)}
           <li>
@@ -216,12 +233,12 @@
       <p class="note">Die Bilderliste konnte nicht geladen werden. Bitte die App neu starten.</p>
     {:else if !catalog}
       <p class="note">Bilder werden geladen …</p>
-    {:else if mode === 'sound' && !sound.trim()}
+    {:else if searchBy === 'sound' && !sound.trim()}
       <p class="note">Einen Laut eingeben – dann erscheinen passende Wörter mit Bild. Gesucht wird nach Buchstaben: „st“ findet z.B. auch „Stern“, obwohl man „scht“ spricht.</p>
     {:else if results.length === 0}
       <p class="note">Nichts gefunden. Ein anderes Wort probieren, z.B. die Einzahl („Maus“ statt „Mäuse“).</p>
     {:else}
-      {#if mode === 'sound' || query.trim()}
+      {#if searchBy === 'sound' || query.trim()}
         <p class="count">{results.length} Treffer</p>
       {/if}
       <ul>
@@ -309,12 +326,58 @@
     display: grid;
     gap: 10px;
   }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 12px;
+    border: 2px solid var(--border);
+    border-radius: calc(var(--radius) * 0.7);
+    background: var(--surface);
+  }
+  .search-row:focus-within {
+    border-color: var(--accent);
+  }
+  .search-by {
+    flex: none;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .segmented {
+    display: flex;
+    flex: none;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--bg);
+  }
+  .segmented button {
+    min-height: 34px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .segmented button.active {
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+  /* The input lives inside the box, so it drops its own frame and is set off by a divider. */
   .search-field {
     position: relative;
+    flex: 1;
+    min-width: 0;
+    border-left: 2px solid var(--border);
   }
   .search-field input {
     width: 100%;
     padding-right: 52px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
   .clear {
     position: absolute;
@@ -445,9 +508,10 @@
   .all {
     margin-left: auto;
   }
-  /* Three tabs and the title do not fit next to each other on a phone. */
+  /* The tabs and the title do not fit next to each other on a phone. */
   @media (max-width: 560px) {
-    h2 {
+    h2,
+    .search-by {
       display: none;
     }
   }
