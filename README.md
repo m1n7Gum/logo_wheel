@@ -33,7 +33,7 @@ Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca
 
 ### Mundmotorik
 
-Der Reiter *Mundmotorik* in der Bildersuche hat zehn Übungen (Zunge zum Kinn, zur Nase, links und rechts, in die Backe, Lippen ablecken, breit lachen, Backen aufblasen, Kussmund, pusten, ansaugen), jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle 10 hinzufügen“ füllt ein Rad auf einmal.
+Der Reiter *Mundmotorik* in der Bildersuche hat 17 Übungen, angelehnt an die üblichen myofunktionellen Übungen (Zunge zum Kinn, zur Nase, rausstrecken, links und rechts, in die Wange, Zähne zählen, breit lachen, Zähne zeigen, Nasenatmung, Wangen aufblasen, ansaugen, schnalzen, Kussmund, Fischmund, Opa-Mund, pusten, Lippen ablecken), jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle 17 hinzufügen“ füllt ein Rad auf einmal.
 
 ## Entwicklung
 

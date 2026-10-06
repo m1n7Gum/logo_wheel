@@ -387,7 +387,9 @@
   }
   .tile {
     width: 100%;
+    height: 100%;
     display: grid;
+    grid-template-rows: auto 1fr;
     gap: 4px;
     padding: 8px;
     border: 2px solid var(--border);
@@ -410,10 +412,17 @@
     aspect-ratio: 1;
     object-fit: contain;
   }
+  /* Up to two lines, so longer names like „Zunge zum Kinn“ can be read in full. */
   .tile span {
+    align-self: center;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
   }
   .more {
     width: 100%;

@@ -1,6 +1,6 @@
 // Pictures for oral-motor exercises (Mundmotorik), drawn for this app: one face per animal and
-// one mouth per exercise. All animals have their mouth at the same spot (100, 122 in a
-// 200 × 200 picture), so every exercise fits every animal. The pictures move (CSS inside the
+// one mouth per exercise, after the usual myofunctional exercises. All animals have their mouth
+// at the same spot (100, 122 in a 200 × 200 picture), so every exercise fits every animal. The pictures move (CSS inside the
 // SVG, also when shown as <img>), except with reduced motion.
 
 export interface MotorAnimal {
@@ -188,8 +188,16 @@ export const MOTOR_ANIMALS: MotorAnimal[] = [dino, alpaca, cow, penguin, sloth];
 
 const openMouth = (w: number, top: number, bottom: number) =>
   `<path d="M ${100 - w} ${top} Q 100 ${top - 4} ${100 + w} ${top} Q ${100 + w + 2} ${bottom - 6} 100 ${bottom} Q ${100 - w - 2} ${bottom - 6} ${100 - w} ${top} Z" fill="${MOUTH}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+/** The edge of `openMouth` again, drawn over what sticks out at the inside. */
+const TEETH_MOUTH = 'M 72 112 Q 100 118 128 112 Q 125 141 100 142 Q 75 141 72 112 Z';
+const outlineMouth = (w: number, top: number, bottom: number) =>
+  `<path d="M ${100 - w} ${top} Q 100 ${top - 4} ${100 + w} ${top} Q ${100 + w + 2} ${bottom - 6} 100 ${bottom} Q ${100 - w - 2} ${bottom - 6} ${100 - w} ${top} Z" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
 const tongue = (d: string) =>
   `<path d="${d}" fill="${TONGUE}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`;
+/** A dark line with a white edge, readable on any fur or body. */
+const haloLine = (d: string) =>
+  `<path d="${d}" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>` +
+  `<path d="${d}" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
 const line = (d: string, width = 3, color = INK) =>
   `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
 
@@ -199,7 +207,8 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
     label: 'Zunge zum Kinn',
     mouth:
       openMouth(18, 110, 136) +
-      `<g class="reach-down">${tongue('M 88 122 L 88 152 Q 88 165 100 165 Q 112 165 112 152 L 112 122 Z')}${line('M 100 130 L 100 152', 2, TONGUE_LINE)}</g>`,
+      `<g class="reach-down">${tongue('M 88 122 L 88 152 Q 88 165 100 165 Q 112 165 112 152 L 112 122 Z')}${line('M 100 130 L 100 152', 2, TONGUE_LINE)}</g>` +
+      haloLine('M 128 144 L 128 168 M 128 168 l -7 -7 M 128 168 l 7 -7'),
   },
   {
     id: 'tongue-nose',
@@ -207,6 +216,29 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
     mouth:
       openMouth(22, 108, 142) +
       `<g class="reach-up">${tongue('M 89 130 L 89 104 Q 89 91 100 91 Q 111 91 111 104 L 111 130 Z')}${line('M 100 100 L 100 122', 2, TONGUE_LINE)}</g>`,
+  },
+  {
+    id: 'tongue-out',
+    label: 'Zunge rausstrecken',
+    // Straight out: the tongue comes out and goes back in. Short and pointed, unlike
+    // „Zunge zum Kinn“, where it hangs down long and wide.
+    mouth:
+      openMouth(16, 113, 133) +
+      `<g class="stick-out">${tongue('M 91 123 L 91 132 Q 91 141 100 147 Q 109 141 109 132 L 109 123 Z')}${line('M 100 128 L 100 138', 2, TONGUE_LINE)}</g>`,
+  },
+  {
+    id: 'count-teeth',
+    label: 'Zähne zählen',
+    // A wide open smile; the tongue tip reaches up and taps the upper teeth one after the other.
+    mouth:
+      `<clipPath id="teeth-mouth"><path d="${TEETH_MOUTH}"/></clipPath>` +
+      `<path d="${TEETH_MOUTH}" fill="${MOUTH}"/>` +
+      `<g clip-path="url(#teeth-mouth)">` +
+      `<path d="M 70 110 Q 100 117 130 110 L 130 120 Q 100 127 70 120 Z" fill="#fff"/>` +
+      line('M 82 116 L 82 122 M 91 117.5 L 91 124 M 100 118 L 100 124.5 M 109 117.5 L 109 124 M 118 116 L 118 122', 1.5, '#c9bfb6') +
+      `<g class="count">${tongue('M 78 146 C 78 134 84 123 90 123 C 96 123 102 134 102 146 Z')}${line('M 90 131 L 90 142', 2, TONGUE_LINE)}</g>` +
+      `</g>` +
+      line(TEETH_MOUTH),
   },
   {
     id: 'smile',
@@ -217,8 +249,26 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       line('M 70 111 Q 100 118 130 111 Q 126 140 100 141 Q 74 140 70 111 Z'),
   },
   {
+    id: 'show-teeth',
+    label: 'Zähne zeigen',
+    mouth:
+      `<path d="M 72 114 Q 100 119 128 114 Q 125 133 100 134 Q 75 133 72 114 Z" fill="#fff"/>` +
+      line('M 74 123 Q 100 127 126 123', 2, '#c9bfb6') +
+      line('M 84 117 L 84 131 M 92 117.5 L 92 132.5 M 100 118 L 100 133.5 M 108 117.5 L 108 132.5 M 116 117 L 116 131', 1.5, '#c9bfb6') +
+      line('M 72 114 Q 100 119 128 114 Q 125 133 100 134 Q 75 133 72 114 Z'),
+  },
+  {
+    id: 'nose-breathing',
+    label: 'Nasenatmung',
+    // Lips closed and smiling, the air goes through the nose.
+    mouth:
+      line('M 84 119 Q 100 131 116 119', 3.5) +
+      line('M 81 117 q 2 3 5 3 M 119 117 q -2 3 -5 3', 2.5) +
+      `<g class="air breathe">${line('M 116 103 q 10 -5 20 0 q 10 5 20 0', 2.5, '#7fb6d8')}${line('M 116 110 q 10 -5 20 0 q 10 5 20 0', 2.5, '#7fb6d8')}</g>`,
+  },
+  {
     id: 'puff-cheeks',
-    label: 'Backen aufblasen',
+    label: 'Wangen aufblasen',
     ownCheeks: true,
     mouth:
       [60, 140]
@@ -240,7 +290,7 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
   },
   {
     id: 'tongue-cheek',
-    label: 'Zunge in die Backe',
+    label: 'Zunge in die Wange',
     mouth:
       line('M 88 121 Q 100 127 112 120') +
       [
@@ -256,11 +306,25 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
   {
     id: 'suck',
     label: 'Ansaugen',
+    // Mouth wide open, the tongue sucked flat against the palate: we see its underside.
     mouth:
-      `<rect x="97" y="124" width="6" height="46" rx="2" fill="#fff" stroke="${INK}" stroke-width="2"/>` +
-      line('M 97.5 134 l 5 -3 M 97.5 146 l 5 -3 M 97.5 158 l 5 -3', 2.5, '#e8667a') +
-      `<circle cx="100" cy="122" r="6.5" fill="${MOUTH}" stroke="${INK}" stroke-width="3"/>` +
-      `<g class="lift"><path d="M 100 166 C 118 170 122 186 100 197 C 78 186 82 170 100 166 Z" fill="#8bc56a" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>${line('M 100 170 L 100 192', 2, '#5f9a45')}</g>`,
+      openMouth(20, 110, 146) +
+      `<g class="suck">${tongue('M 81 111 Q 100 107 119 111 Q 117 129 100 131 Q 83 129 81 111 Z')}</g>` +
+      line('M 100 129 L 100 141', 2.2, TONGUE_LINE) +
+      outlineMouth(20, 110, 146),
+  },
+  {
+    id: 'click',
+    label: 'Schnalzen',
+    // The tongue snaps down from the palate: „Klack!“
+    mouth:
+      openMouth(20, 110, 146) +
+      `<g class="tongue-up">${tongue('M 81 111 Q 100 107 119 111 Q 117 129 100 131 Q 83 129 81 111 Z')}${line('M 100 129 L 100 141', 2.2, TONGUE_LINE)}</g>` +
+      `<g class="tongue-down">${tongue('M 84 140 Q 100 124 116 140 Q 100 147 84 140 Z')}</g>` +
+      outlineMouth(20, 110, 146) +
+      `<g class="klack">` +
+      `<path d="M 146 118 C 146 104 196 104 196 118 C 196 132 160 132 152 129 L 134 136 L 146 125 Q 146 122 146 118 Z" fill="#fff" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>` +
+      `<text x="171" y="123" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="13" fill="${INK}">Klack!</text></g>`,
   },
   {
     id: 'kiss',
@@ -269,6 +333,33 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       // Small pursed lips, a little round „o“.
       `<ellipse cx="100" cy="122" rx="6" ry="5.5" fill="#e07a8c" stroke="${INK}" stroke-width="2.5"/>` +
       `<ellipse cx="100" cy="122.5" rx="2" ry="2.2" fill="${MOUTH}"/>`,
+  },
+  {
+    id: 'fish',
+    label: 'Fischmund',
+    ownCheeks: true,
+    // Cheeks sucked in, the lips open and close like a fish's.
+    mouth:
+      line('M 80 108 Q 88 121 80 134 M 120 108 Q 112 121 120 134', 2.5) +
+      `<ellipse cx="100" cy="122" rx="8" ry="10" fill="#e07a8c" stroke="${INK}" stroke-width="2.5"/>` +
+      `<g class="gulp"><ellipse cx="100" cy="122" rx="3.5" ry="5.5" fill="${MOUTH}"/></g>` +
+      `<g class="swim"><path d="M 168 124 C 174 114 188 114 192 124 C 188 134 174 134 168 124 Z M 168 124 L 160 117 L 160 131 Z" fill="#7fb6d8" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>` +
+      `<circle cx="185" cy="122" r="1.8" fill="${INK}"/></g>`,
+  },
+  {
+    id: 'hide-lips',
+    label: 'Opa-Mund',
+    // The lips roll into the mouth: first we see them, then only a tight line with the rolled-in
+    // lips bulging above and below. Without motion it stays at the line.
+    mouth:
+      `<g class="lips-out">` +
+      `<path d="M 84 122 Q 92 114 100 117.5 Q 108 114 116 122 Q 100 125 84 122 Z" fill="#e07a8c" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `<path d="M 84 122 Q 100 125 116 122 Q 112 132 100 132 Q 88 132 84 122 Z" fill="#e07a8c" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></g>` +
+      `<g class="lips-in"><ellipse cx="100" cy="122.5" rx="19" ry="10" fill="${INK}" opacity=".12"/>` +
+      line('M 87 115.5 Q 100 111 113 115.5 M 88 129 Q 100 133.5 112 129', 2.2, '#8a6a58') +
+      line('M 82 122 Q 100 124 118 122', 4) +
+      line('M 80 119 q -2 3 0 6 M 120 119 q 2 3 0 6', 2.5) +
+      `</g>`,
   },
   {
     id: 'blow',
@@ -301,8 +392,27 @@ const STYLE = `
 .bulge-left { opacity: 0; animation: bulge 2.4s ease-in-out infinite; }
 .bulge-right { animation: bulge 2.4s ease-in-out -1.2s infinite; }
 @keyframes bulge { 0%, 40% { opacity: 1; } 50%, 90% { opacity: 0; } 100% { opacity: 1; } }
-.lift { animation: lift 1.6s ease-in-out infinite; }
-@keyframes lift { 50% { transform: translateY(-4px); } }
+.suck { transform-origin: 100px 110px; animation: suck 2s ease-in-out infinite; }
+@keyframes suck { 50% { transform: scaleY(.9); } }
+.stick-out { transform-origin: 100px 123px; animation: stick-out 2.8s ease-in-out infinite; }
+@keyframes stick-out { 0%, 12%, 100% { transform: scaleY(.15); } 40%, 75% { transform: scaleY(1); } }
+.count { animation: count 3s ease-in-out infinite; }
+@keyframes count { 0%, 8% { transform: translateX(0); } 18%, 26% { transform: translateX(10px); } 36%, 44% { transform: translateX(20px); } 54%, 62% { transform: translateX(30px); } 100% { transform: translateX(0); } }
+.breathe { animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+.tongue-down, .klack { opacity: 0; }
+.tongue-up { animation: click-up 1.6s steps(1) infinite; }
+.tongue-down, .klack { animation: click-down 1.6s steps(1) infinite; }
+@keyframes click-up { 0% { opacity: 1; } 55% { opacity: 0; } }
+@keyframes click-down { 0% { opacity: 0; } 55% { opacity: 1; } }
+.gulp { transform-origin: 100px 122px; animation: gulp 1.4s ease-in-out infinite; }
+@keyframes gulp { 50% { transform: scale(.25); } }
+.swim { animation: swim 2.8s ease-in-out infinite; }
+@keyframes swim { 50% { transform: translateY(-4px); } }
+.lips-out { opacity: 0; transform-origin: 100px 122px; animation: lips-out 3s ease-in-out infinite; }
+@keyframes lips-out { 0%, 30% { opacity: 1; transform: none; } 45%, 90% { opacity: 0; transform: scaleY(.2); } 100% { opacity: 1; transform: none; } }
+.lips-in { animation: lips-in 3s ease-in-out infinite; }
+@keyframes lips-in { 0%, 35% { opacity: 0; } 45%, 88% { opacity: 1; } 100% { opacity: 0; } }
 .air path { stroke-dasharray: 10 8; animation: air 0.9s linear infinite; }
 @keyframes air { to { stroke-dashoffset: -18; } }
 .circle { transform-origin: 100px 122px; animation: circle 2.4s linear infinite; }
