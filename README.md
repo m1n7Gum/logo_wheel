@@ -33,7 +33,12 @@ Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca
 
 ### Mundmotorik
 
-Der Reiter *Mundmotorik* in der Bildersuche hat 17 Übungen, angelehnt an die üblichen myofunktionellen Übungen (Zunge zum Kinn, zur Nase, rausstrecken, links und rechts, in die Wange, Zähne zählen, breit lachen, Zähne zeigen, Nasenatmung, Wangen aufblasen, ansaugen, schnalzen, Kussmund, Fischmund, Opa-Mund, pusten, Lippen ablecken), jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle 17 hinzufügen“ füllt ein Rad auf einmal.
+Der Reiter *Mundmotorik* in der Bildersuche hat 31 Übungen, angelehnt an die üblichen myofunktionellen Übungen und die Übungskarten der Praxis, jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Sie sind wie die Karten in zwei Gruppen geteilt:
+
+- **Zunge** (15): Zungenschlafplatz, Zungenschlafplatz 3 mal, rausstrecken, zum Kinn, zur Nase, links und rechts, in die Wange, spitz und breit, Zähne zählen, Zähne putzen, Lippen ablecken, Ansaugen, Zunge schaukeln, Schnalzen, Zungenkampf
+- **Lippen** (16): Breit lachen, Zähne zeigen, Lippen breit, Kussmund, Lippen spitz und breit, Fischmund, Opa-Mund, Oberlippe drüber, Unterlippe drüber, Spatel halten, Lippen blubbern, Schlürfen, Pusten, Wangen aufblasen, Luft hin und her, Nasenatmung
+
+Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Dort steht auch die Liste `MOTOR_EXERCISES`: Reihenfolge, Name (`label`) und Gruppe (`group: 'tongue'` oder `'lips'`) jeder Übung. Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle … hinzufügen“ füllt ein Rad auf einmal mit allen Übungen einer Gruppe.
 
 ## Entwicklung
 

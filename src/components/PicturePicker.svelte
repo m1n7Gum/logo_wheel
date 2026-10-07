@@ -21,7 +21,7 @@
   import type { EntryImage } from '../lib/model/wheel';
   import { fetchPictogram, type Pictogram } from '../lib/pictures/arasaac';
   import { loadCatalog, type Catalog } from '../lib/pictures/catalog';
-  import { MOTOR_ANIMALS, MOTOR_EXERCISES, motorPictureUrl } from '../lib/pictures/mouthMotor';
+  import { MOTOR_ANIMALS, MOTOR_EXERCISES, MOTOR_GROUPS, motorPictureUrl } from '../lib/pictures/mouthMotor';
 
   let {
     initialQuery = '',
@@ -82,9 +82,17 @@
     return query.trim() ? catalog.searchWord(query) : catalog.inCategory(category);
   });
   const showCategories = $derived(searchBy === 'word' && !query.trim());
-  const motorPictures = $derived.by(() => {
+  /** Tongue and lip exercises apart, like the practice's two card sets. */
+  const motorGroups = $derived.by(() => {
     const a = MOTOR_ANIMALS.find((x) => x.id === animal) ?? MOTOR_ANIMALS[0];
-    return MOTOR_EXERCISES.map((e) => ({ id: e.id, keyword: e.label, image: { src: motorPictureUrl(a, e) } }));
+    return MOTOR_GROUPS.map((g) => ({
+      ...g,
+      pictures: MOTOR_EXERCISES.filter((e) => e.group === g.id).map((e) => ({
+        id: e.id,
+        keyword: e.label,
+        image: { src: motorPictureUrl(a, e) },
+      })),
+    }));
   });
 
   // A new search starts at the top again.
@@ -158,9 +166,6 @@
         {#each MOTOR_ANIMALS as a (a.id)}
           <button class="chip" class:active={animal === a.id} onclick={() => (animal = a.id)}>{a.label}</button>
         {/each}
-        {#if onpickall}
-          <button class="ghost all" onclick={() => onpickall(motorPictures)}><Icon name="plus" />Alle {motorPictures.length} hinzufügen</button>
-        {/if}
       </div>
     {:else}
       <!-- One box, so it is clear that the switch decides how the text is searched. -->
@@ -219,16 +224,26 @@
 
   <div class="results">
     {#if motor}
-      <ul>
-        {#each motorPictures as m (m.id)}
-          <li>
-            <button class="tile" onclick={() => onpick(m.image, m.keyword)} aria-label={m.keyword}>
-              <img src={m.image.src} alt="" width="256" height="256" />
-              <span>{m.keyword}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
+      {#each motorGroups as g (g.id)}
+        <section class="group">
+          <div class="group-head">
+            <h3>{g.label}</h3>
+            {#if onpickall}
+              <button class="ghost" onclick={() => onpickall(g.pictures)}><Icon name="plus" />Alle {g.pictures.length} hinzufügen</button>
+            {/if}
+          </div>
+          <ul>
+            {#each g.pictures as m (m.id)}
+              <li>
+                <button class="tile" onclick={() => onpick(m.image, m.keyword)} aria-label={m.keyword}>
+                  <img src={m.image.src} alt="" width="256" height="256" />
+                  <span>{m.keyword}</span>
+                </button>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/each}
     {:else if catalogError}
       <p class="note">Die Bilderliste konnte nicht geladen werden. Bitte die App neu starten.</p>
     {:else if !catalog}
@@ -484,6 +499,12 @@
     line-clamp: 2;
     overflow: hidden;
     text-wrap: balance;
+    /* Long words like „Zungenschlafplatz“ break at a syllable, not after any letter; short
+       ones like „Lippen“ stay whole. */
+    hyphens: auto;
+    hyphenate-limit-chars: 11 5 5;
+    -webkit-hyphenate-limit-before: 5;
+    -webkit-hyphenate-limit-after: 5;
     overflow-wrap: anywhere;
     line-height: 1.2;
   }
@@ -505,8 +526,20 @@
     gap: 8px;
     justify-items: start;
   }
-  .all {
-    margin-left: auto;
+  .group + .group {
+    margin-top: 20px;
+  }
+  .group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  h3 {
+    margin: 0;
+    font-size: 18px;
   }
   /* The tabs and the title do not fit next to each other on a phone. */
   @media (max-width: 560px) {
