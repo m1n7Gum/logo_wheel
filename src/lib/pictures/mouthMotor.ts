@@ -260,6 +260,12 @@ const puff = (x: number) =>
 /** The tongue sucked flat against the palate, seen from below, and dropped back down. */
 const TONGUE_AT_PALATE = 'M 81 111 Q 100 107 119 111 Q 117 129 100 131 Q 83 129 81 111 Z';
 const TONGUE_DOWN = 'M 84 140 Q 100 124 116 140 Q 100 147 84 140 Z';
+/** The tip up at the bump behind the upper teeth, the back of the tongue down. */
+const TONGUE_TIP_UP = 'M 80 148 C 82 130 93 113 100 113 C 107 113 118 130 120 148 Z';
+/** The mouth dropped wide open, like a nutcracker's jaw. */
+const CRACK_OPEN = 'M 72 112 Q 100 118 128 112 Q 126 152 100 154 Q 74 152 72 112 Z';
+/** Inside of `openMouth(20, 110, 146)`, to clip what is drawn in it. */
+const OPEN_WIDE = 'M 80 110 Q 100 106 120 110 Q 122 140 100 146 Q 78 140 80 110 Z';
 
 // Each exercise belongs to `group` 'tongue' (Zunge) or 'lips' (Lippen). The picker shows them in
 // this order.
@@ -414,16 +420,33 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       outlineMouth(20, 110, 146),
   },
   {
-    id: 'rock',
+    id: 'suck-release',
     group: 'tongue',
-    label: 'Zunge schaukeln',
-    // Like „Schnalzen“ without the sound: suck up, let go, again and again, rocking gently.
+    label: 'Ansaugen und lösen',
+    // Like „Schnalzen“ without the sound: suck up, let go, again and again.
     mouth:
       openMouth(20, 110, 146) +
       `<g class="first">${tongue(TONGUE_AT_PALATE)}${line('M 100 129 L 100 141', 2.2, TONGUE_LINE)}</g>` +
       `<g class="second">${tongue(TONGUE_DOWN)}</g>` +
       outlineMouth(20, 110, 146) +
       haloLine('M 146 107 Q 158 122 146 137 M 146 107 l 0 8 M 146 107 l 7.5 2.6 M 146 137 l 7.5 -2.6 M 146 137 l 0 -8'),
+  },
+  {
+    id: 'rock',
+    group: 'tongue',
+    label: 'Zunge schaukeln',
+    // A seesaw: the tip stays up at the bump behind the teeth, the back of the tongue sucks up to
+    // the palate and lets go again. The little seesaw below rocks along.
+    mouth:
+      `<clipPath id="rock-mouth"><path d="${OPEN_WIDE}"/></clipPath>` +
+      openMouth(20, 110, 146) +
+      `<g clip-path="url(#rock-mouth)">` +
+      `<g class="rock-down">${tongue(TONGUE_TIP_UP)}${line('M 100 124 L 100 138', 2, TONGUE_LINE)}</g>` +
+      `<g class="rock-up">${tongue(TONGUE_AT_PALATE)}${line('M 100 129 L 100 141', 2.2, TONGUE_LINE)}</g>` +
+      `</g>` +
+      outlineMouth(20, 110, 146) +
+      `<path d="M 92 183 L 100 170 L 108 183 Z" fill="${WOOD}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `<g class="seesaw"><rect x="72" y="164.5" width="56" height="7" rx="3.5" fill="${WOOD}" stroke="${INK}" stroke-width="2.5"/></g>`,
   },
   {
     id: 'click',
@@ -557,6 +580,26 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       `</g>`,
   },
   {
+    id: 'nutcracker',
+    group: 'lips',
+    label: 'Nussknacker',
+    // Like the wooden figure: the mouth opens wide and the teeth snap shut: „Knack!“
+    mouth:
+      `<g class="crack-open">` +
+      `<clipPath id="crack-mouth"><path d="${CRACK_OPEN}"/></clipPath>` +
+      `<path d="${CRACK_OPEN}" fill="${MOUTH}"/>` +
+      `<g clip-path="url(#crack-mouth)">${upperTeeth}<g transform="translate(0 12)">${lowerTeeth}</g></g>` +
+      line(CRACK_OPEN) +
+      `</g>` +
+      `<g class="crack-shut">` +
+      `<path d="M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z" fill="#fff"/>` +
+      line('M 75 123.5 Q 100 126.5 125 123.5', 2.2, '#a89c92') +
+      line('M 84 118 L 84 130 M 92 119 L 92 131 M 100 119.5 L 100 131.5 M 108 119 L 108 131 M 116 118 L 116 130', 1.5, '#c9bfb6') +
+      line('M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z') +
+      `</g>` +
+      `<g class="crack-shut">${speech('Knack!')}</g>`,
+  },
+  {
     id: 'blubber',
     group: 'lips',
     label: 'Lippen blubbern',
@@ -629,6 +672,15 @@ const STYLE = `
 @keyframes bulge { 0%, 40% { opacity: 1; } 50%, 90% { opacity: 0; } 100% { opacity: 1; } }
 .first { animation: bulge 2.8s ease-in-out infinite; }
 .second { opacity: 0; animation: bulge 2.8s ease-in-out -1.4s infinite; }
+.rock-up { animation: rock-up 2.4s ease-in-out infinite; }
+.rock-down { animation: rock-up 2.4s ease-in-out -1.2s infinite; }
+@keyframes rock-up { 0%, 30% { opacity: 0; } 45%, 80% { opacity: 1; } 95%, 100% { opacity: 0; } }
+.seesaw { transform-origin: 100px 168px; animation: seesaw 2.4s ease-in-out infinite; }
+@keyframes seesaw { 0%, 30%, 95%, 100% { transform: rotate(-12deg); } 45%, 80% { transform: rotate(12deg); } }
+.crack-open { animation: crack-open 1.8s steps(1) infinite; }
+.crack-shut { opacity: 0; animation: crack-shut 1.8s steps(1) infinite; }
+@keyframes crack-open { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes crack-shut { 0% { opacity: 0; } 50% { opacity: 1; } }
 .suck { transform-origin: 100px 110px; animation: suck 2s ease-in-out infinite; }
 @keyframes suck { 50% { transform: scaleY(.9); } }
 .stick-out { transform-origin: 100px 123px; animation: stick-out 2.8s ease-in-out infinite; }

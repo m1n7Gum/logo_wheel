@@ -1,4 +1,5 @@
 import { pictogramUrl, type Pictogram } from './arasaac';
+import { querySounds, wordSounds, type Sound } from './sounds';
 
 /** Shape of `arasaac-index.json`, written by `scripts/update-pictograms.mjs`. */
 export interface CatalogData {
@@ -53,19 +54,19 @@ export class Catalog {
   }
 
   /**
-   * Single words that contain a sound (written as letters, e.g. „sch“) at the given position.
+   * Single words that contain a sound (typed as letters, e.g. „sch“) at the given position.
    * One picture per word, so the list reads like a word list for therapy; common words first.
    */
   searchSound(sound: string, position: SoundPosition, nounsOnly = false): Pictogram[] {
-    const s = normalize(sound);
-    if (!s) return [];
+    const options = querySounds(sound);
+    if (!options.length) return [];
     const seen = new Set<string>();
     const hits: { p: Pictogram; freq: number }[] = [];
     for (const [id, words] of this.data.items) {
       for (const [word, type, freq = 0] of words) {
         if (nounsOnly && type !== NOUN) continue;
         const w = normalize(word);
-        if (w.includes(' ') || seen.has(w) || !hasSound(w, s, position)) continue;
+        if (w.includes(' ') || seen.has(w) || !matchSounds(wordSounds(w), options, position)) continue;
         seen.add(w);
         hits.push({ p: toPictogram(id, word), freq });
       }
@@ -91,42 +92,32 @@ export class Catalog {
 }
 
 /**
- * Letter-based, not phonetic, but „sch“ and „ch“ count as one sound each: a search must not
- * cut through them, so „ch“ does not find „Tisch“ and „s“ does not find „Schule“. Other
- * spellings still count by letters, e.g. „st“ in „Stern“ although it is spoken „scht“.
+ * Whether a word has a sound at the given position, by how the word is spoken, not spelled:
+ * „s“ finds „Sonne“ and „Fuß“ but not „Stein“ (spoken „scht“) or „Schule“; „sch“ finds „Stein“
+ * too; „t“ at the end finds „Hund“. Letters that can stand for several sounds find all of them:
+ * „st“ finds „Stern“ and „Fenster“, „v“ finds „Vogel“ and „Vase“.
  */
 export function hasSound(word: string, sound: string, position: SoundPosition): boolean {
-  const units = letterUnits(word);
-  const matchesAt = (i: number) => {
-    if (!word.startsWith(sound, i)) return false;
-    const end = i + sound.length;
-    // Reject a match that starts or ends inside a unit (partly overlapping it).
-    return !units.some(([from, to]) => from < end && i < to && (i > from || end < to));
-  };
-  const last = word.length - sound.length;
-  switch (position) {
-    case 'start':
-      return matchesAt(0);
-    case 'end':
-      return last >= 0 && matchesAt(last);
-    case 'middle':
-      for (let i = 1; i < last; i++) if (matchesAt(i)) return true;
-      return false;
-    case 'any':
-      for (let i = 0; i <= last; i++) if (matchesAt(i)) return true;
-      return false;
-  }
+  return matchSounds(wordSounds(word), querySounds(sound), position);
 }
 
-/** Spans of „sch“ and „ch“ in a word, each spoken as one sound. */
-function letterUnits(word: string): [number, number][] {
-  const units: [number, number][] = [];
-  for (let i = 0; i < word.length; ) {
-    const len = word.startsWith('sch', i) ? 3 : word.startsWith('ch', i) ? 2 : 0;
-    if (len) units.push([i, i + len]);
-    i += len || 1;
-  }
-  return units;
+function matchSounds(word: Sound[], options: Sound[][], position: SoundPosition): boolean {
+  return options.some((q) => {
+    const matchesAt = (i: number) => q.every((s, j) => word[i + j] === s);
+    const last = word.length - q.length;
+    switch (position) {
+      case 'start':
+        return matchesAt(0);
+      case 'end':
+        return last >= 0 && matchesAt(last);
+      case 'middle':
+        for (let i = 1; i < last; i++) if (matchesAt(i)) return true;
+        return false;
+      case 'any':
+        for (let i = 0; i <= last; i++) if (matchesAt(i)) return true;
+        return false;
+    }
+  });
 }
 
 /** Common words first, words of equal frequency alphabetically. */

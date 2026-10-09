@@ -249,7 +249,9 @@
     {:else if !catalog}
       <p class="note">Bilder werden geladen …</p>
     {:else if searchBy === 'sound' && !sound.trim()}
-      <p class="note">Einen Laut eingeben – dann erscheinen passende Wörter mit Bild. Gesucht wird nach Buchstaben: „st“ findet z.B. auch „Stern“, obwohl man „scht“ spricht.</p>
+      <p class="note">Einen Laut eingeben – dann erscheinen passende Wörter mit Bild. Gesucht wird nach dem, was man hört: „s“ findet „Fuß“, aber nicht „Stein“ (gesprochen „scht“); „sch“ findet auch „Stein“.</p>
+    {:else if results.length === 0 && searchBy === 'sound' && position === 'end' && /^[bdg]$/i.test(sound.trim())}
+      <p class="note">Am Wortende spricht man b, d, g wie p, t, k. „Hund“ steht deshalb unter „t“.</p>
     {:else if results.length === 0}
       <p class="note">Nichts gefunden. Ein anderes Wort probieren, z.B. die Einzahl („Maus“ statt „Mäuse“).</p>
     {:else}

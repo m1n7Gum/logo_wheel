@@ -18,7 +18,7 @@ Gut zu wissen:
 - Updates kommen automatisch, sobald die App mit Internet gestartet wird.
 - **Bilder für Kinder, die noch nicht lesen:** Im Editor neben einem Feld auf das Bild-Symbol tippen (oder unten auf *Bild*).
   - *Wort*: nach einem Wort suchen. Mit leerem Suchfeld erscheinen Kategorien (Tiere, Essen, Spielzeug …).
-  - *Laut*: z.B. „sch“ eingeben und wählen, ob der Laut am Anfang, in der Mitte oder am Ende stehen soll. Gesucht wird nach Buchstaben, nicht nach Aussprache („st“ findet auch „Stern“).
+  - *Laut*: z.B. „sch“ eingeben und wählen, ob der Laut am Anfang, in der Mitte oder am Ende stehen soll. Gesucht wird nach dem, was man hört: „s“ findet „Sonne“ und „Fuß“, aber nicht „Stein“ oder „Bleistift“ (gesprochen „scht“), die stehen unter „sch“. „Kuss“ hat das s am Ende, nicht in der Mitte; „Hund“ endet auf t, „Zug“ auf k, „König“ auf ch; „n“ findet nicht „Ring“ oder „Bank“ (ng). Buchstaben mit mehreren Aussprachen finden beides: „st“ findet „Stern“ und „Fenster“, „v“ findet „Vogel“ und „Vase“.
   - Rund 2.000 ausgewählte Bilder sind in der App enthalten. Suche und Bilder funktionieren komplett ohne Internet, die App ruft keine fremden Server auf.
 
 ### Bildquelle
@@ -29,14 +29,16 @@ Die Bilder liegen als WebP in `public/pictograms/` (ca. 19 MB), die Wortliste f�
 
 Die Bildersuche zeigt häufige Wörter zuerst. Die Häufigkeit (Zipf-Skala × 10, im Index pro Wort) stammt aus deutschen Filmuntertiteln, also gesprochener Sprache: [OpenSubtitles 2018 über hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords) (CC BY-SA 4.0). Das Skript lädt die Liste beim Aktualisieren; Wörter, die dort fehlen, stehen am Ende.
 
+Wie die Wörter gesprochen werden, bestimmt `src/lib/pictures/sounds.ts`: Rechtschreibregeln (z.B. „st“ am Wortanfang, Auslautverhärtung, stummes h) und Ausnahmelisten, abgestimmt auf die Wortliste. Dort stehen die Wortteile, die mit „scht“/„schp“ beginnen (`SCH_PARTS`, für „Blei|stift“, „Ball|spiel“), und Fremdwörter in deutscher Schreibung (`RESPELLINGS`, z.B. „Baby“ → „bebi“). Kommen neue Wörter dazu, lohnt ein Blick auf ihre Zerlegung (`wordSounds`). Nicht unterschieden werden ich- und ach-Laut sowie das gerollte und das vokalische r („Tür“).
+
 Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca. 2.000 ARASAAC-IDs). Die Auswahl ist für Sprachtherapie mit Kindern von 3 bis 10 geprüft: alltagsnahe Nomen und gut darstellbare Verben, ohne Fachbegriffe, Medizin, Sexualität, Gewalt, Geld- und Verwaltungsthemen. Sie wurde einmalig mit KI vorsortiert und von Hand nachgearbeitet. Neue ARASAAC-Bilder kommen nur rein, wenn ihre ID dort ergänzt wird; `npm run update-pictograms -- --pictures <datei>` exportiert alle Kandidaten mit Wörtern zum Durchsehen. Zusätzlich filtert das Skript Bilder, die ARASAAC als sexuell oder gewalttätig markiert, und einzelne Wörter (`BLOCKED_WORDS`, `scripts/pictogram-exclusions.json`).
 
 ### Mundmotorik
 
-Der Reiter *Mundmotorik* in der Bildersuche hat 31 Übungen, angelehnt an die üblichen myofunktionellen Übungen und die Übungskarten der Praxis, jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Sie sind wie die Karten in zwei Gruppen geteilt:
+Der Reiter *Mundmotorik* in der Bildersuche hat 33 Übungen, angelehnt an die üblichen myofunktionellen Übungen und die Übungskarten der Praxis, jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Sie sind wie die Karten in zwei Gruppen geteilt:
 
-- **Zunge** (15): Zungenschlafplatz, Zungenschlafplatz 3 mal, rausstrecken, zum Kinn, zur Nase, links und rechts, in die Wange, spitz und breit, Zähne zählen, Zähne putzen, Lippen ablecken, Ansaugen, Zunge schaukeln, Schnalzen, Zungenkampf
-- **Lippen** (16): Breit lachen, Zähne zeigen, Lippen breit, Kussmund, Lippen spitz und breit, Fischmund, Opa-Mund, Oberlippe drüber, Unterlippe drüber, Spatel halten, Lippen blubbern, Schlürfen, Pusten, Wangen aufblasen, Luft hin und her, Nasenatmung
+- **Zunge** (16): Zungenschlafplatz, Zungenschlafplatz 3 mal, rausstrecken, zum Kinn, zur Nase, links und rechts, in die Wange, spitz und breit, Zähne zählen, Zähne putzen, Lippen ablecken, Ansaugen, Ansaugen und lösen, Zunge schaukeln, Schnalzen, Zungenkampf
+- **Lippen** (17): Breit lachen, Zähne zeigen, Lippen breit, Kussmund, Lippen spitz und breit, Fischmund, Opa-Mund, Oberlippe drüber, Unterlippe drüber, Spatel halten, Nussknacker, Lippen blubbern, Schlürfen, Pusten, Wangen aufblasen, Luft hin und her, Nasenatmung
 
 Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Dort steht auch die Liste `MOTOR_EXERCISES`: Reihenfolge, Name (`label`) und Gruppe (`group: 'tongue'` oder `'lips'`) jeder Übung. Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle … hinzufügen“ füllt ein Rad auf einmal mit allen Übungen einer Gruppe.
 
