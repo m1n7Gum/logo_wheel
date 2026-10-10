@@ -324,6 +324,17 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       `<g class="reach-up">${tongue('M 89 130 L 89 104 Q 89 91 100 91 Q 111 91 111 104 L 111 130 Z')}${line('M 100 100 L 100 122', 2, TONGUE_LINE)}</g>`,
   },
   {
+    id: 'tongue-up-down',
+    group: 'tongue',
+    label: 'Zunge auf und ab',
+    // Stuck far out, the tongue points up to the nose, then down to the chin, and again.
+    mouth:
+      openMouth(22, 108, 142) +
+      `<g class="first">${tongue('M 89 130 L 89 104 Q 89 91 100 91 Q 111 91 111 104 L 111 130 Z')}${line('M 100 100 L 100 122', 2, TONGUE_LINE)}</g>` +
+      `<g class="second">${tongue('M 89 120 L 89 152 Q 89 165 100 165 Q 111 165 111 152 L 111 120 Z')}${line('M 100 130 L 100 152', 2, TONGUE_LINE)}</g>` +
+      haloLine('M 140 104 L 140 140 M 140 104 l -7 7 M 140 104 l 7 7 M 140 140 l -7 -7 M 140 140 l 7 -7'),
+  },
+  {
     id: 'tongue-corners',
     group: 'tongue',
     label: 'Zunge links und rechts',
@@ -420,18 +431,6 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       outlineMouth(20, 110, 146),
   },
   {
-    id: 'suck-release',
-    group: 'tongue',
-    label: 'Ansaugen und lösen',
-    // Like „Schnalzen“ without the sound: suck up, let go, again and again.
-    mouth:
-      openMouth(20, 110, 146) +
-      `<g class="first">${tongue(TONGUE_AT_PALATE)}${line('M 100 129 L 100 141', 2.2, TONGUE_LINE)}</g>` +
-      `<g class="second">${tongue(TONGUE_DOWN)}</g>` +
-      outlineMouth(20, 110, 146) +
-      haloLine('M 146 107 Q 158 122 146 137 M 146 107 l 0 8 M 146 107 l 7.5 2.6 M 146 137 l 7.5 -2.6 M 146 137 l 0 -8'),
-  },
-  {
     id: 'rock',
     group: 'tongue',
     label: 'Zunge schaukeln',
@@ -447,6 +446,29 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       outlineMouth(20, 110, 146) +
       `<path d="M 92 183 L 100 170 L 108 183 Z" fill="${WOOD}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` +
       `<g class="seesaw"><rect x="72" y="164.5" width="56" height="7" rx="3.5" fill="${WOOD}" stroke="${INK}" stroke-width="2.5"/></g>`,
+  },
+  {
+    id: 'nutcracker',
+    group: 'tongue',
+    label: 'Nussknacker',
+    // The tongue stays sucked up to the palate while the mouth opens wide and the teeth snap shut,
+    // like the wooden figure: „Knack!“ Open, we see the tongue's underside behind the teeth.
+    mouth:
+      `<g class="crack-open">` +
+      `<clipPath id="crack-mouth"><path d="${CRACK_OPEN}"/></clipPath>` +
+      `<path d="${CRACK_OPEN}" fill="${MOUTH}"/>` +
+      `<g clip-path="url(#crack-mouth)">` +
+      `<g transform="translate(0 9)">${tongue(TONGUE_AT_PALATE)}${line('M 100 129 L 100 141', 2.2, TONGUE_LINE)}</g>` +
+      `${upperTeeth}<g transform="translate(0 12)">${lowerTeeth}</g></g>` +
+      line(CRACK_OPEN) +
+      `</g>` +
+      `<g class="crack-shut">` +
+      `<path d="M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z" fill="#fff"/>` +
+      line('M 75 123.5 Q 100 126.5 125 123.5', 2.2, '#a89c92') +
+      line('M 84 118 L 84 130 M 92 119 L 92 131 M 100 119.5 L 100 131.5 M 108 119 L 108 131 M 116 118 L 116 130', 1.5, '#c9bfb6') +
+      line('M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z') +
+      `</g>` +
+      `<g class="crack-shut">${speech('Knack!')}</g>`,
   },
   {
     id: 'click',
@@ -578,26 +600,6 @@ export const MOTOR_EXERCISES: MotorExercise[] = [
       lip('M 85 120.5 Q 92 111 100 114.5 Q 108 111 115 120.5 Z') +
       lip('M 85 124.5 L 115 124.5 Q 110 134 100 134 Q 90 134 85 124.5 Z') +
       `</g>`,
-  },
-  {
-    id: 'nutcracker',
-    group: 'lips',
-    label: 'Nussknacker',
-    // Like the wooden figure: the mouth opens wide and the teeth snap shut: „Knack!“
-    mouth:
-      `<g class="crack-open">` +
-      `<clipPath id="crack-mouth"><path d="${CRACK_OPEN}"/></clipPath>` +
-      `<path d="${CRACK_OPEN}" fill="${MOUTH}"/>` +
-      `<g clip-path="url(#crack-mouth)">${upperTeeth}<g transform="translate(0 12)">${lowerTeeth}</g></g>` +
-      line(CRACK_OPEN) +
-      `</g>` +
-      `<g class="crack-shut">` +
-      `<path d="M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z" fill="#fff"/>` +
-      line('M 75 123.5 Q 100 126.5 125 123.5', 2.2, '#a89c92') +
-      line('M 84 118 L 84 130 M 92 119 L 92 131 M 100 119.5 L 100 131.5 M 108 119 L 108 131 M 116 118 L 116 130', 1.5, '#c9bfb6') +
-      line('M 74 116 Q 100 120 126 116 Q 123 131 100 132 Q 77 131 74 116 Z') +
-      `</g>` +
-      `<g class="crack-shut">${speech('Knack!')}</g>`,
   },
   {
     id: 'blubber',

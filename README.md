@@ -37,8 +37,8 @@ Welche Bilder in die App kommen, steht in `scripts/pictogram-selection.json` (ca
 
 Der Reiter *Mundmotorik* in der Bildersuche hat 33 Übungen, angelehnt an die üblichen myofunktionellen Übungen und die Übungskarten der Praxis, jeweils mit Dino, Alpaka, Kuh, Pinguin oder Faultier. Sie sind wie die Karten in zwei Gruppen geteilt:
 
-- **Zunge** (16): Zungenschlafplatz, Zungenschlafplatz 3 mal, rausstrecken, zum Kinn, zur Nase, links und rechts, in die Wange, spitz und breit, Zähne zählen, Zähne putzen, Lippen ablecken, Ansaugen, Ansaugen und lösen, Zunge schaukeln, Schnalzen, Zungenkampf
-- **Lippen** (17): Breit lachen, Zähne zeigen, Lippen breit, Kussmund, Lippen spitz und breit, Fischmund, Opa-Mund, Oberlippe drüber, Unterlippe drüber, Spatel halten, Nussknacker, Lippen blubbern, Schlürfen, Pusten, Wangen aufblasen, Luft hin und her, Nasenatmung
+- **Zunge** (17): Zungenschlafplatz, Zungenschlafplatz 3 mal, rausstrecken, zum Kinn, zur Nase, auf und ab, links und rechts, in die Wange, spitz und breit, Zähne zählen, Zähne putzen, Lippen ablecken, Ansaugen, Zunge schaukeln, Nussknacker, Schnalzen, Zungenkampf
+- **Lippen** (16): Breit lachen, Zähne zeigen, Lippen breit, Kussmund, Lippen spitz und breit, Fischmund, Opa-Mund, Oberlippe drüber, Unterlippe drüber, Spatel halten, Lippen blubbern, Schlürfen, Pusten, Wangen aufblasen, Luft hin und her, Nasenatmung
 
 Die Bilder sind für diese App gezeichnet, als SVG in `src/lib/pictures/mouthMotor.ts`, und bewegen sich (außer bei „Bewegung reduzieren“). Dort steht auch die Liste `MOTOR_EXERCISES`: Reihenfolge, Name (`label`) und Gruppe (`group: 'tongue'` oder `'lips'`) jeder Übung. Alle Tiere haben den Mund an derselben Stelle, so passt jede Übung zu jedem Tier; ein neues Tier braucht nur Kopf und Körper. „Alle … hinzufügen“ füllt ein Rad auf einmal mit allen Übungen einer Gruppe.
 
