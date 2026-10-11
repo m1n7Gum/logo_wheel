@@ -6,10 +6,23 @@
   import { themes } from '../themes/registry';
   import type { Theme } from '../themes/types';
   import { ARASAAC_CREDIT } from '../lib/pictures/arasaac';
+  import { pictureCache } from '../lib/pictures/offlineCache.svelte';
 
   let message = $state('');
 
   let fileInput: HTMLInputElement | undefined = $state();
+
+  const buildTime = new Date(__BUILD_TIME__).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+
+  let online = $state(navigator.onLine);
+  /** The service worker holds the app itself; once it controls the page, the app opens offline. */
+  let appStored = $state(!!navigator.serviceWorker?.controller);
+  $effect(() => {
+    const update = () => (appStored = !!navigator.serviceWorker?.controller);
+    navigator.serviceWorker?.addEventListener('controllerchange', update);
+    return () => navigator.serviceWorker?.removeEventListener('controllerchange', update);
+  });
+  const picturesStored = $derived(pictureCache.total > 0 && pictureCache.stored >= pictureCache.total);
 
   function swatch(theme: Theme): string {
     const colors = theme.segmentColors;
@@ -48,6 +61,8 @@
     }
   }
 </script>
+
+<svelte:window ononline={() => (online = true)} onoffline={() => (online = false)} />
 
 <div class="backdrop" role="presentation" onclick={() => (app.settingsOpen = false)} transition:fade={{ duration: 150 }}></div>
 <div class="sheet" role="dialog" aria-label="Optionen" transition:fly={{ x: 400, duration: 220 }}>
@@ -97,16 +112,68 @@
   </section>
 
   <section>
-    <h2>Bilder</h2>
-    <p class="note">Alle Bilder sind in der App enthalten und funktionieren ohne Internet.</p>
+    <h2>Ohne Internet</h2>
+    {#if picturesStored && appStored}
+      <p class="status ready"><Icon name="check" />Bereit – die App und alle {pictureCache.total} Bilder funktionieren ohne Internet.</p>
+    {:else if pictureCache.unavailable}
+      <p class="note">Dieser Browser kann die Bilder nicht für unterwegs speichern. Ohne Internet fehlen deshalb Bilder.</p>
+    {:else if pictureCache.total === 0}
+      <p class="note">Wird geprüft …</p>
+    {:else}
+      <p class="status">
+        {pictureCache.stored} von {pictureCache.total} Bildern gespeichert
+      </p>
+      <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={pictureCache.total} aria-valuenow={pictureCache.stored}>
+        <span style:width="{(pictureCache.stored / pictureCache.total) * 100}%"></span>
+      </div>
+      {#if !picturesStored}
+        <p class="note">
+          {online
+            ? 'Die Bilder werden im Hintergrund geladen. Die App dabei bitte geöffnet lassen.'
+            : 'Kein Internet – das Laden geht weiter, sobald das Tablet wieder online ist.'}
+        </p>
+      {:else}
+        <p class="note">Die App selbst wird noch gespeichert. Bitte die App einmal schließen und neu öffnen.</p>
+      {/if}
+    {/if}
     <p class="note credit">{ARASAAC_CREDIT}</p>
   </section>
 
   <InstallHint />
+
+  <p class="note version">Version vom {buildTime} ({__APP_COMMIT__})</p>
 </div>
 
 <style>
   .credit {
+    font-size: 12px;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 700;
+  }
+  .status.ready {
+    color: #1e8449;
+  }
+  .progress {
+    height: 10px;
+    margin-top: 8px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .progress span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .version {
+    margin: 0;
     font-size: 12px;
   }
   .backdrop {

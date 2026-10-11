@@ -2,12 +2,27 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
 
 // GitHub Pages serves the app under /<repo-name>/ – the deploy workflow sets BASE_PATH.
 const base = process.env.BASE_PATH ?? '/';
 
+// Shown in the options, so it is easy to tell whether the tablet already runs the latest build.
+function commit(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim();
+  } catch {
+    return 'dev';
+  }
+}
+
 export default defineConfig({
   base,
+  define: {
+    __APP_COMMIT__: JSON.stringify(commit()),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     svelte(),
     VitePWA({
@@ -31,13 +46,13 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
         // ~2,000 pictures would make the install so slow that Firefox and Samsung Internet abort
-        // it. The app stores them itself in the background (src/lib/pictures/offlineCache.ts).
+        // it. The app stores them itself in the background (src/lib/pictures/offlineCache.svelte.ts).
         globIgnores: ['**/pictograms/**'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.includes('/pictograms/'),
             handler: 'CacheFirst',
-            // Must match PICTURE_CACHE in src/lib/pictures/offlineCache.ts.
+            // Must match PICTURE_CACHE in src/lib/pictures/offlineCache.svelte.ts.
             options: { cacheName: 'pictograms', cacheableResponse: { statuses: [200] } },
           },
         ],

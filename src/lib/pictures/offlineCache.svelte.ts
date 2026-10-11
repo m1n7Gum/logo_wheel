@@ -8,6 +8,9 @@ import { loadCatalog } from './catalog';
 export const PICTURE_CACHE = 'pictograms';
 const PARALLEL_DOWNLOADS = 6;
 
+/** How far the offline copy has got, for the options. `total` is 0 until the first check. */
+export const pictureCache = $state({ stored: 0, total: 0, unavailable: false });
+
 let running = false;
 
 /**
@@ -15,7 +18,11 @@ let running = false;
  * interrupted run simply continues on the next app start. Never throws.
  */
 export async function cacheAllPictures(): Promise<void> {
-  if (running || typeof caches === 'undefined' || !navigator.onLine) return;
+  if (running) return;
+  if (typeof caches === 'undefined') {
+    pictureCache.unavailable = true;
+    return;
+  }
   running = true;
   try {
     const [catalog, cache] = await Promise.all([loadCatalog(), caches.open(PICTURE_CACHE)]);
@@ -23,13 +30,18 @@ export async function cacheAllPictures(): Promise<void> {
     const missing = catalog.ids
       .map((id) => new URL(pictogramUrl(id), location.href).href)
       .filter((url) => !stored.has(url));
+    pictureCache.total = catalog.ids.length;
+    pictureCache.stored = pictureCache.total - missing.length;
     let next = 0;
     async function worker() {
       while (next < missing.length && navigator.onLine) {
         const url = missing[next++];
         try {
           const res = await fetch(url);
-          if (res.ok) await cache.put(url, res);
+          if (res.ok) {
+            await cache.put(url, res);
+            pictureCache.stored++;
+          }
         } catch {
           // Offline or a single failure: picked up again on the next start.
         }

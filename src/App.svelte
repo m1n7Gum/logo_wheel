@@ -7,7 +7,7 @@
   import { app } from './lib/state/app.svelte';
   import { applyTheme } from './themes/registry';
   import { requestPersistentStorage } from './lib/storage/settings';
-  import { cacheAllPictures } from './lib/pictures/offlineCache';
+  import { cacheAllPictures } from './lib/pictures/offlineCache.svelte';
 
   $effect(() => applyTheme(app.theme));
   $effect(() => {
@@ -17,6 +17,9 @@
     return () => clearTimeout(timer);
   });
 </script>
+
+<!-- Pictures that could not be stored while offline are fetched as soon as the internet is back. -->
+<svelte:window ononline={() => void cacheAllPictures()} />
 
 {#if app.view.name === 'list'}
   <WheelList />
