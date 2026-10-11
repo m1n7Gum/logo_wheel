@@ -146,7 +146,9 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
 
 <div class="backdrop" onclick={onclose} aria-hidden="true" transition:fade={{ duration: 150 }}></div>
-<div class="dialog" role="dialog" aria-modal="true" aria-label="Bild auswählen" transition:fade={{ duration: 150 }}>
+<!-- No fade on the dialog itself: the pictures arrive while it would still be fading in, and
+     iOS Safari then does not make the list scrollable until it is rebuilt. -->
+<div class="dialog" role="dialog" aria-modal="true" aria-label="Bild auswählen">
   <header>
     <h2>Bild auswählen</h2>
     <div class="tabs" role="tablist">
