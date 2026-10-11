@@ -300,8 +300,10 @@
     max-width: 900px;
     margin: 0 auto;
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    /* minmax(0, …) keeps the result list from growing to its content on iOS Safari. */
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
     gap: 12px;
+    overflow: hidden;
     padding: 16px;
     background: var(--bg);
     color: var(--text);
@@ -448,8 +450,12 @@
     width: 20px;
     height: 20px;
   }
+  /* iOS Safari does not always notice that the list became scrollable once the pictures
+     arrive, so it is a scroll area from the start. */
   .results {
-    overflow-y: auto;
+    overflow-y: scroll;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     min-height: 0;
   }
   .count {
