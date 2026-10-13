@@ -18,6 +18,8 @@
     close: 'M18 6 6 18M6 6l12 12',
     image: 'M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M21 15l-5-5L5 21',
     search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.35-4.35',
+    grip: 'M5 9h14M5 15h14',
+    shuffle: 'M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5',
   } as const;
 
   export type IconName = keyof typeof ICONS;

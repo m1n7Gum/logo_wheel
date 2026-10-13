@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { flip } from 'svelte/animate';
   import Icon from './Icon.svelte';
   import PageHeader from './PageHeader.svelte';
   import InstallHint from './InstallHint.svelte';
   import PicturePicker from './PicturePicker.svelte';
   import { app } from '../lib/state/app.svelte';
   import { createEntry, createWheel, newId, type EntryImage, type Wheel } from '../lib/model/wheel';
+  import { moveEntry, shuffleSpread } from '../lib/model/arrange';
 
   /** `null` creates a new wheel. */
   let { wheelId }: { wheelId: string | null } = $props();
@@ -84,11 +86,76 @@
     app.show(isNew ? { name: 'list' } : { name: 'wheel' });
   }
 
+  // Reordering: drag an entry by its handle; it moves live to the entry under the finger.
+  let dragId = $state<string | null>(null);
+  let pointerY = 0;
+  let pointerX = 0;
+  let scrollFrame = 0;
+
+  function moveTo(id: string, to: number) {
+    const from = draft.entries.findIndex((e) => e.id === id);
+    if (from === -1 || to < 0 || to >= draft.entries.length || from === to) return;
+    draft.entries = moveEntry(draft.entries, from, to);
+  }
+
+  function startDrag(event: PointerEvent, id: string) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    dragId = id;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    scrollFrame = requestAnimationFrame(autoScroll);
+  }
+
+  function followPointer() {
+    if (!dragId) return;
+    const target = document.elementFromPoint(pointerX, pointerY)?.closest<HTMLElement>('li[data-id]');
+    if (target && target.dataset.id !== dragId) {
+      moveTo(dragId, draft.entries.findIndex((e) => e.id === target.dataset.id));
+    }
+  }
+
+  function drag(event: PointerEvent) {
+    if (!dragId) return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    followPointer();
+  }
+
+  /** Scrolls the page while the finger rests near the top or bottom edge. */
+  function autoScroll() {
+    if (!dragId) return;
+    const edge = 80;
+    const step = pointerY < edge ? -8 : pointerY > innerHeight - edge ? 8 : 0;
+    if (step) {
+      scrollBy(0, step);
+      followPointer();
+    }
+    scrollFrame = requestAnimationFrame(autoScroll);
+  }
+
+  function endDrag() {
+    dragId = null;
+    cancelAnimationFrame(scrollFrame);
+  }
+
+  function dragKey(event: KeyboardEvent, index: number) {
+    const step = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    moveTo(draft.entries[index].id, index + step);
+  }
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function remove() {
     app.deleteWheel(draft.id);
     app.show({ name: 'list' });
   }
 </script>
+
+<!-- On the window, because reordering moves the handle in the DOM, which would drop pointer capture. -->
+<svelte:window onpointermove={drag} onpointerup={endDrag} onpointercancel={endDrag} />
 
 <div class="page">
   <PageHeader title={isNew ? 'Neues Rad' : 'Rad bearbeiten'} backLabel="Abbrechen" onback={cancel}>
@@ -116,7 +183,14 @@
     <section>
       <div class="section-head">
         <h2>Felder ({draft.entries.length})</h2>
-        <button class="ghost" onclick={toggleBulk}>{bulkMode ? 'Einzeln bearbeiten' : 'Als Liste bearbeiten'}</button>
+        <div class="head-actions">
+          {#if !bulkMode && draft.entries.length > 2}
+            <button class="ghost" onclick={() => (draft.entries = shuffleSpread(draft.entries))}>
+              <Icon name="shuffle" />Mischen
+            </button>
+          {/if}
+          <button class="ghost" onclick={toggleBulk}>{bulkMode ? 'Einzeln bearbeiten' : 'Als Liste bearbeiten'}</button>
+        </div>
       </div>
 
       {#if bulkMode}
@@ -129,7 +203,15 @@
       {:else}
         <ol>
           {#each draft.entries as entry, i (entry.id)}
-            <li>
+            <li data-id={entry.id} class:dragging={dragId === entry.id} animate:flip={{ duration: reduceMotion || dragId ? 0 : 200 }}>
+              <button
+                class="ghost icon handle"
+                onpointerdown={(e) => startDrag(e, entry.id)}
+                onkeydown={(e) => dragKey(e, i)}
+                aria-label="Feld verschieben (Pfeiltasten)"
+              >
+                <Icon name="grip" />
+              </button>
               <button
                 class="ghost icon picture"
                 onclick={() => (picker = { entryId: entry.id })}
@@ -150,6 +232,12 @@
           <button class="primary" type="submit" disabled={!newLabel.trim()}><Icon name="plus" />Hinzufügen</button>
         </form>
         <p class="note">Mit „Bild“ ein Bild zum Wort suchen – so können auch Kinder mitspielen, die noch nicht lesen.</p>
+        {#if draft.entries.length > 2}
+          <p class="note">
+            Zum Umsortieren ein Feld an <Icon name="grip" size={16} /> ziehen. „Mischen“ verteilt gleiche Felder (z.B. mehrmals
+            „Gewinn“) gleichmäßig übers Rad.
+          </p>
+        {/if}
       {/if}
     </section>
 
@@ -222,9 +310,36 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 8px;
   }
+  .head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
   li {
     display: flex;
     gap: 4px;
+    border-radius: calc(var(--radius) * 0.7);
+  }
+  li.dragging {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  }
+  .handle {
+    flex: none;
+    min-width: 36px !important;
+    width: 36px;
+    color: var(--text-muted);
+    cursor: grab;
+    touch-action: none;
+  }
+  .dragging .handle {
+    cursor: grabbing;
+  }
+  .note :global(svg) {
+    vertical-align: -3px;
   }
   li input {
     flex: 1;

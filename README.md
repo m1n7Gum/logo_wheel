@@ -16,6 +16,7 @@ Gut zu wissen:
 - Alle Räder werden automatisch **auf dem jeweiligen Tablet** gespeichert.
 - Unter *Optionen → Sicherung* lässt sich eine Backup-Datei speichern und wieder laden, z.B. um Räder auf ein anderes Tablet zu übertragen.
 - Updates kommen automatisch, sobald die App mit Internet gestartet wird.
+- **Felder anordnen:** Im Editor ein Feld am Griff (≡) an eine andere Stelle ziehen. *Mischen* ordnet die Felder zufällig neu und verteilt gleiche Felder (z.B. mehrmals „Gewinn“) möglichst gleichmäßig übers Rad.
 - **Bilder für Kinder, die noch nicht lesen:** Im Editor neben einem Feld auf das Bild-Symbol tippen (oder unten auf *Bild*).
   - *Wort*: nach einem Wort suchen. Mit leerem Suchfeld erscheinen Kategorien (Tiere, Essen, Spielzeug …).
   - *Laut*: z.B. „sch“ eingeben und wählen, ob der Laut am Anfang, in der Mitte oder am Ende stehen soll. Gesucht wird nach dem, was man hört: „s“ findet „Sonne“ und „Fuß“, aber nicht „Stein“ oder „Bleistift“ (gesprochen „scht“), die stehen unter „sch“. „Kuss“ hat das s am Ende, nicht in der Mitte; „Hund“ endet auf t, „Zug“ auf k, „König“ auf ch; „n“ findet nicht „Ring“ oder „Bank“ (ng). Buchstaben mit mehreren Aussprachen finden beides: „st“ findet „Stern“ und „Fenster“, „v“ findet „Vogel“ und „Vase“.
