@@ -40,6 +40,14 @@ const EXTRA_WORDS = new Set(['mond']);
 // Vulgar words ARASAAC does not flag.
 const BLOCKED_WORDS = new Set(['arsch', 'kacke', 'kacken', 'scheißen', 'scheißhaufen']);
 /**
+ * Words for single pictures, in this order (the first is the name shown); other ARASAAC words
+ * of the picture are dropped. For words that fit the picture badly or are not what children say.
+ */
+const PICTURE_WORDS = new Map([
+  [7258, ['pusten', 'ausatmen']], // not „blasen“
+  [37026, ['lecken']], // a child licking a lolly does not show „saugen“
+]);
+/**
  * Words too rare or specialised for children (e.g. „Kabinettsleiter“), reviewed once and
  * editable by hand. Only the word is dropped; a picture stays if it has other words left.
  */
@@ -89,12 +97,14 @@ for (const p of all) {
   if (SELECTION_IDS && !reviewing && !SELECTION_IDS.has(p._id)) continue;
   const tags = new Set(p.tags ?? []);
   if ([...tags].some((t) => EXCLUDED_TAGS.has(t))) continue;
-  const words = (p.keywords ?? [])
+  let words = (p.keywords ?? [])
     .map((k) => [typeof k.keyword === 'string' ? k.keyword.trim() : '', k.type ?? 0])
     .filter(([w, type]) => w && (KEYWORD_TYPES.has(type) || EXTRA_WORDS.has(w.toLocaleLowerCase('de'))))
     .filter(([w]) => !(SINGLE_WORDS_ONLY && w.includes(' ')))
     .filter(([w]) => !BLOCKED_WORDS.has(w.toLocaleLowerCase('de')))
     .filter(([w]) => !EXCLUDED_WORDS.has(w.toLocaleLowerCase('de')));
+  const chosen = PICTURE_WORDS.get(p._id);
+  if (chosen) words = chosen.map((c) => words.find(([w]) => w === c)).filter(Boolean);
   if (words.length === 0) continue;
   const main = words[0][0].toLocaleLowerCase('de');
   if ((perWord.get(main) ?? 0) >= MAX_PER_WORD) continue;
