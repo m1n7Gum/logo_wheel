@@ -12,12 +12,19 @@
   const fontSize = $derived(
     `min(${Math.round(150 / Math.max(2, [...entry.label].length))}cqw, ${entry.image ? 9 : 26}cqh)`,
   );
+  // Moving SVG pictures (Mundmotorik) as <img> freeze on iOS here; as a document of their own
+  // in an iframe they keep moving. Sandboxed, so an SVG from a backup cannot run scripts.
+  const moving = $derived(!!entry.image?.src.startsWith('data:image/svg+xml'));
   const hint = $derived(willDisappear ? 'Tippen – Feld verschwindet vom Rad' : 'Tippen zum Weitermachen');
 </script>
 
 {#snippet content()}
   <div class="content">
-    {#if entry.image}<img src={entry.image.src} alt={entry.label} />{/if}
+    {#if entry.image && moving}
+      <iframe class="picture" src={entry.image.src} sandbox="" title={entry.label} tabindex="-1"></iframe>
+    {:else if entry.image}
+      <img class="picture" src={entry.image.src} alt={entry.label} />
+    {/if}
     {#if entry.label}<span class="label" style:font-size={fontSize}>{entry.label}</span>{/if}
   </div>
 {/snippet}
@@ -77,13 +84,18 @@
     gap: 1cqh;
     min-height: 0;
   }
-  img {
+  .picture {
+    width: 30cqh;
     height: 30cqh;
-    aspect-ratio: 1;
     object-fit: contain;
     padding: 1.5cqh;
     border-radius: 3cqh;
     background: #fff;
+  }
+  iframe {
+    border: 0;
+    /* Taps go to the overlay, which closes it. */
+    pointer-events: none;
   }
   .label {
     font-family: var(--font-family);
