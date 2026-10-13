@@ -4,6 +4,7 @@
   import ResultOverlay from './ResultOverlay.svelte';
   import Toolbar from './Toolbar.svelte';
   import Icon from './Icon.svelte';
+  import Confetti from './Confetti.svelte';
   import { app } from '../lib/state/app.svelte';
   import { tick } from 'svelte';
   import { easeOutQuart, planSpin, segmentAngle, spinKeyframes } from '../lib/spin/spinEngine';
@@ -103,6 +104,7 @@
           {#if entries.length > 0}
             <Wheel bind:this={wheel} {entries} {rotation} {highlightIndex} {theme} />
           {:else}
+            <Confetti />
             <div class="done">
               <p>Alle geschafft! 🎉</p>
               <button class="primary" onclick={() => app.resetRun()}>Neu starten</button>
